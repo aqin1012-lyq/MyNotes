@@ -371,7 +371,7 @@ window.CURRICULUM = {
           ],
         },
         {
-          id: 'web-ssrf', title: 'SSRF（重点）', month: '2027-02',
+          id: 'web-ssrf', title: 'SSRF（重点）', month: '2027-02', lab: '05-ssrf.md',
           summary: '让服务器替你发请求。它连接了云环境（Metadata）、内网、微服务和 AI Agent 的工具调用——是贯穿整条路线的漏洞。',
           points: [
             'SSRF 的典型入口：URL 预览、图片下载、Webhook、PDF 生成、Agent 的 fetch 工具',
