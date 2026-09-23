@@ -5,15 +5,22 @@
   --text: #0b0b0b;
   --text-2: #52514e;
   --muted: #8a8984;
-  --accent: #2a78d6;
-  --accent-soft: #cde2fb;
+  --accent: #6d3fd6;       /* 紫：链接、按钮、进度 */
+  --accent-ink: #ffffff;   /* 紫底上的文字 */
+  --accent-soft: #e9e0fd;
+  --lime: #c5e84a;         /* 黄绿：当前 / 完成 */
+  --lime-ink: #1f2a05;     /* 黄绿底上的文字 */
+  --lime-line: #5a8f0e;    /* 黄绿描边 */
   --track: #ebeae6;
-  --good: #0ca30c;
+  --good: var(--lime-line);
+  --pink: #ec7a9c;         /* 图标：腮红 / 小失误 */
+  --pink-soft: #ffe3eb;
+  --face: #2b2140;         /* 图标表情 */
   --heat-0: #ebeae6;
-  --heat-1: #b7d3f6;
-  --heat-2: #6da7ec;
-  --heat-3: #2a78d6;
-  --heat-4: #104281;
+  --heat-1: #d9c9fb;
+  --heat-2: #b197f5;
+  --heat-3: #8457e8;
+  --heat-4: #5a2dbf;
   --radius: 10px;
   color-scheme: light dark;
 }
@@ -26,14 +33,21 @@
     --text: #ffffff;
     --text-2: #c3c2b7;
     --muted: #8f8e86;
-    --accent: #3987e5;
-    --accent-soft: #184f95;
+    --accent: #9b7bf2;
+    --accent-ink: #1a1a19;
+    --accent-soft: #33245e;
+    --lime: #c5e84a;
+    --lime-ink: #1f2a05;
+    --lime-line: #c5e84a;
     --track: #2e2e2c;
+    --pink: #f59ab5;
+    --pink-soft: #4a2a37;
+    --face: #ffffff;
     --heat-0: #262624;
-    --heat-1: #104281;
-    --heat-2: #1c5cab;
-    --heat-3: #3987e5;
-    --heat-4: #86b6ef;
+    --heat-1: #3d2a6e;
+    --heat-2: #5b3fb0;
+    --heat-3: #8b66ee;
+    --heat-4: #c4aefc;
   }
 }
 
@@ -56,11 +70,11 @@ h3 { font-size: 15px; margin: 0 0 8px; }
   width: 210px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; padding: 20px 14px;
   background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column;
 }
-.brand { font-weight: 700; font-size: 18px; margin: 0 8px 20px; }
+.brand { font-weight: 700; font-size: 18px; margin: 0 8px 20px; color: var(--accent); }
 .brand small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
-#nav a { display: block; padding: 8px 10px; border-radius: 8px; color: var(--text-2); margin-bottom: 2px; }
+#nav a { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 8px; color: var(--text-2); margin-bottom: 2px; }
 #nav a:hover { background: var(--track); text-decoration: none; }
-#nav a.active { background: var(--accent-soft); color: var(--text); font-weight: 600; }
+#nav a.active { background: var(--accent-soft); color: var(--text); font-weight: 600; box-shadow: inset 3px 0 0 var(--lime-line); }
 .sidebar-foot { margin-top: auto; font-size: 12px; color: var(--muted); padding: 0 8px; }
 main { flex: 1; min-width: 0; padding: 28px 36px 80px; max-width: 1200px; }
 
@@ -79,11 +93,12 @@ main { flex: 1; min-width: 0; padding: 28px 36px 80px; max-width: 1200px; }
 /* ---- progress bars ---- */
 .bar { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; }
 .bar > span { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.bar.full > span { background: var(--lime-line); }
 .stage-row { display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center; padding: 6px 0; }
 .stage-row .pct { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-2); font-size: 13px; }
-.badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--text); margin-left: 6px; vertical-align: 1px; }
-.badge.gray { background: var(--track); color: var(--text-2); }
-.badge.good { background: transparent; border: 1px solid var(--good); color: var(--text); }
+.badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--lime); color: var(--lime-ink); font-weight: 600; margin-left: 6px; vertical-align: 1px; }
+.badge.gray { background: var(--track); color: var(--text-2); font-weight: 400; }
+.badge.good { background: transparent; border: 1px solid var(--lime-line); color: var(--text); }
 
 /* ---- heatmap ---- */
 .heatmap { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 13px); gap: 3px; overflow-x: auto; padding-bottom: 4px; }
@@ -98,7 +113,7 @@ main { flex: 1; min-width: 0; padding: 28px 36px 80px; max-width: 1200px; }
 
 /* ---- roadmap ---- */
 .stage { margin-bottom: 18px; }
-.stage.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.stage.current { border-color: var(--lime-line); box-shadow: 0 0 0 1px var(--lime-line); }
 .stage-head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
 .stage-head .period { color: var(--muted); font-size: 13px; }
 .topic-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; margin-top: 14px; }
@@ -135,7 +150,7 @@ button {
   border-radius: 8px; padding: 6px 12px; cursor: pointer;
 }
 button:hover { border-color: var(--accent); }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 button.link { border: 0; background: none; color: var(--muted); padding: 2px 6px; }
 button.link:hover { color: var(--text); }
 .save-state { font-size: 12px; color: var(--muted); }
@@ -178,4 +193,22 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .editor { grid-template-columns: 1fr; }
   .stage-row { grid-template-columns: 1fr 70px; }
   .stage-row .bar { grid-column: 1 / -1; grid-row: 2; }
+}
+
+/* ---- cute icons ---- */
+.ico { width: 1.3em; height: 1.3em; flex-shrink: 0; vertical-align: -0.3em; overflow: visible; }
+.ico.lg { width: 26px; height: 26px; }
+.with-ico { display: flex; align-items: center; gap: 8px; }
+.badge .ico { width: 1.25em; height: 1.25em; margin: -2px 3px -2px -3px; vertical-align: -0.35em; }
+#nav .ico { width: 20px; height: 20px; transform-origin: 50% 80%; }
+#nav a:hover .ico, .pitfall:hover .ico { animation: wiggle .45s ease-in-out; }
+.pitfall { align-items: flex-start; }
+.pitfall .ico { margin-top: 1px; }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-12deg) scale(1.08); }
+  60% { transform: rotate(9deg) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #nav a:hover .ico, .pitfall:hover .ico { animation: none; }
 }

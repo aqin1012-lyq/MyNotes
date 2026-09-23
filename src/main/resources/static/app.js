@@ -143,9 +143,54 @@
     return out.join('\n');
   }
 
+  // ---------------------------------------------------------------- cute icons (inline SVG, colours from app.css)
+
+  const FACE = 'fill="none" stroke="var(--face)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"';
+  const eyes = (y, l = 10, r = 14) => `<circle cx="${l}" cy="${y}" r=".95" fill="var(--face)"/><circle cx="${r}" cy="${y}" r=".95" fill="var(--face)"/>`;
+  const smile = (y, l = 10.6, r = 13.4) => `<path d="M${l} ${y}q${(r - l) / 2} 1.3 ${r - l} 0" ${FACE}/>`;
+  const blush = (y, l = 7.6, r = 16.4) => `<ellipse cx="${l}" cy="${y}" rx="1.2" ry=".7" fill="var(--pink)" opacity=".55"/><ellipse cx="${r}" cy="${y}" rx="1.2" ry=".7" fill="var(--pink)" opacity=".55"/>`;
+  const LINE = 'stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"';
+
+  const ICONS = {
+    // 小失误：叉叉眼 + 波浪嘴
+    oops: `<circle cx="12" cy="12" r="9.5" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      <path d="M8.2 8.8l2 2M10.2 8.8l-2 2M13.8 8.8l2 2M15.8 8.8l-2 2" ${FACE}/>
+      <path d="M9.2 15.6c.7-.8 1.3-.8 1.9 0s1.2.8 1.9 0 1.3-.8 1.9 0" ${FACE}/>${blush(13.2, 6.8, 17.2)}`,
+    // 完成：眯眼笑
+    happy: `<circle cx="12" cy="12" r="9.5" fill="var(--lime)" stroke="var(--lime-line)" ${LINE}/>
+      <path d="M8.3 10.6q1.2-1.6 2.4 0M13.3 10.6q1.2-1.6 2.4 0" ${FACE} style="--face:var(--lime-ink)"/>
+      <path d="M9.4 13.6q2.6 2.8 5.2 0" ${FACE} style="--face:var(--lime-ink)"/>${blush(13.3, 7, 17)}`,
+    star: `<path d="M12 2.8l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.1l-5.2 2.8 1-5.8L3.5 9l5.9-.8z" fill="var(--lime)" stroke="var(--lime-line)" ${LINE}/>
+      <g style="--face:var(--lime-ink)">${eyes(10.8, 10.4, 13.6)}${smile(12.9, 11, 13)}</g>`,
+    flag: `<path d="M5.5 21V3.8" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M5.5 4.3h12.2l-2.6 4 2.6 4H5.5" fill="var(--lime)" stroke="var(--lime-line)" ${LINE}/>
+      <g style="--face:var(--lime-ink)">${eyes(7.8, 9, 12)}${smile(9.6, 9.6, 11.4)}</g>`,
+    bubble: `<path d="M7 4.5h10a4 4 0 0 1 4 4v4.5a4 4 0 0 1-4 4h-6.2L7 20v-3.1A4 4 0 0 1 3 13V8.5a4 4 0 0 1 4-4z" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      ${eyes(10, 9.3, 14.7)}<circle cx="12" cy="13" r="1" fill="none" stroke="var(--face)" stroke-width="1.3"/>${blush(12, 6.8, 17.2)}`,
+    flask: `<path d="M9.6 3.2h4.8M10.6 3.2v5.6L5.3 18.2a1.9 1.9 0 0 0 1.7 2.8h10a1.9 1.9 0 0 0 1.7-2.8L13.4 8.8V3.2" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M7.4 14.6h9.2l2.1 3.6a1.9 1.9 0 0 1-1.7 2.8H7a1.9 1.9 0 0 1-1.7-2.8z" fill="var(--lime)"/>
+      <circle cx="11.3" cy="11.2" r=".8" fill="var(--accent)"/><circle cx="12.9" cy="8.9" r=".6" fill="var(--accent)"/>
+      <g style="--face:var(--lime-ink)">${eyes(17.2, 10.2, 13.8)}${smile(18.7, 11.1, 12.9)}</g>`,
+    book: `<rect x="4.5" y="3" width="14" height="18" rx="2.6" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M7.7 3.2v17.6" stroke="var(--accent)" stroke-width="1.4"/>
+      <path d="M14 3v5l1.5-1.1L17 8V3" fill="var(--lime)" stroke="var(--lime-line)" stroke-width="1" stroke-linejoin="round"/>
+      ${eyes(11.8, 11.2, 15)}${smile(14, 12.1, 14.1)}${blush(13.4, 10, 16.2)}`,
+    pencil: `<path d="M15.2 4.8l4 4L9.4 18.6 4.6 19.4l.8-4.8z" fill="var(--lime)" stroke="var(--lime-line)" ${LINE}/>
+      <path d="M15.2 4.8l1.3-1.3a1.6 1.6 0 0 1 2.3 0l1.7 1.7a1.6 1.6 0 0 1 0 2.3l-1.3 1.3z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      <path d="M5.4 14.6l4 4" stroke="var(--lime-line)" stroke-width="1.2"/>
+      <g style="--face:var(--lime-ink)"><circle cx="10.6" cy="11.4" r=".85" fill="var(--face)"/><circle cx="12.6" cy="13.4" r=".85" fill="var(--face)"/></g>`,
+    flame: `<path d="M12 21.2c-3.9 0-6.4-2.6-6.4-6 0-3.3 2.5-5.1 3.7-8.1.5 1.8 1.5 2.9 2.6 3.1-.3-2.6.8-5.1 2.9-7 .3 2.9 3.6 5.4 3.6 9.8 0 3.9-2.6 8.2-6.4 8.2z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      ${eyes(15, 10.3, 13.7)}${smile(17.1, 10.9, 13.1)}`,
+    heart: `<path d="M12 20s-7.6-4.6-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.5C19.6 15.4 12 20 12 20z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      ${eyes(11.6, 9.8, 14.2)}${smile(13.7, 11, 13)}`,
+  };
+
+  const icon = (name, cls = '') =>
+    `<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
+
   // ---------------------------------------------------------------- shared view pieces
 
-  const bar = p => `<div class="bar" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><span style="width:${p}%"></span></div>`;
+  const bar = p => `<div class="bar${p === 100 ? ' full' : ''}" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><span style="width:${p}%"></span></div>`;
 
   function checklist(ids, labels, extra = () => '') {
     return `<ul class="checklist">${ids.map((id, i) => {
@@ -274,7 +319,7 @@
         <div class="card tile"><div class="label">知识点</div><div class="value">${knowledge.done}</div><div class="sub">共 ${knowledge.total} 个</div></div>
         <div class="card tile"><div class="label">项目里程碑</div><div class="value">${projects.done}</div><div class="sub">共 ${projects.total} 个</div></div>
         <div class="card tile"><div class="label">累计学习</div><div class="value">${hours(totalMin)}<small style="font-size:14px"> 小时</small></div><div class="sub">近 7 天 ${weekMin} 分钟</div></div>
-        <div class="card tile"><div class="label">连续打卡</div><div class="value">${studyStreak()}<small style="font-size:14px"> 天</small></div><div class="sub"><a href="#/journal">去打卡 →</a></div></div>
+        <div class="card tile"><div class="label with-ico">${icon('flame')}连续打卡</div><div class="value">${studyStreak()}<small style="font-size:14px"> 天</small></div><div class="sub"><a href="#/journal">去打卡 →</a></div></div>
       </div>
 
       <div class="grid two" style="margin-top:16px">
@@ -282,7 +327,7 @@
           <h3>当前阶段：${esc(cur.title)} <span class="badge">${esc(cur.from)} ~ ${esc(cur.to)}</span></h3>
           <p class="small" style="color:var(--text-2)">${esc(cur.goal)}</p>
           ${next ? `<p>下一个未完成主题：<a href="#/topic/${next.id}"><strong>${esc(next.title)}</strong></a>
-            <span class="muted small">（${esc(next.stage.title)} · 计划 ${esc(next.month)} · ${topicStats(next).pct}%）</span></p>` : '<p>🎉 全部主题已完成</p>'}
+            <span class="muted small">（${esc(next.stage.title)} · 计划 ${esc(next.month)} · ${topicStats(next).pct}%）</span></p>` : `<p>${icon('happy')} 全部主题已完成</p>`}
           ${cp ? `<p class="small muted">下一个节点：<a href="#/principles">${esc(cp.title)}</a>（${esc(cp.date)}，还有 ${cpDays} 天）</p>` : ''}
         </div>
         <div class="card">
@@ -325,13 +370,13 @@
             ${s === cur ? '<span class="badge">当前阶段</span>' : ''}
             <span class="spacer"></span><span class="small muted">${st.done}/${st.total} · ${st.pct}%</span>
           </div>
-          <p class="small" style="color:var(--text-2);margin:6px 0 10px">🎯 ${esc(s.goal)}</p>
+          <p class="small with-ico" style="color:var(--text-2);margin:6px 0 10px">${icon('star')}<span>${esc(s.goal)}</span></p>
           ${bar(st.pct)}
           <div class="topic-list">
             ${s.topics.map(t => {
               const ts = topicStats(t);
               return `<a class="topic-chip" href="#/topic/${t.id}">
-                <strong>${esc(t.title)}</strong>${ts.pct === 100 ? ' <span class="badge good">✓ 完成</span>' : ''}
+                <strong>${esc(t.title)}</strong>${ts.pct === 100 ? ` <span class="badge good">${icon('happy')}完成</span>` : ''}
                 <div class="meta"><span>计划 ${esc(t.month)}</span><span>${ts.done}/${ts.total}</span></div>
                 ${bar(ts.pct)}
               </a>`;
@@ -365,15 +410,15 @@
       <div class="grid two" style="margin-top:18px">
         <div class="card"><h3>知识点</h3>${checklist(kIds, t.points.map(esc))}</div>
         <div class="card">
-          <h3>🧠 攻击者视角：思考题</h3>
+          <h3 class="with-ico">${icon('bubble')}攻击者视角：思考题</h3>
           <ul class="questions">${(t.questions || []).map(q => `<li>${esc(q)}</li>`).join('')}</ul>
-          <h3 style="margin-top:14px">🛠 动手实践</h3>
+          <h3 class="with-ico" style="margin-top:14px">${icon('flask')}动手实践</h3>
           ${checklist(pIds, (t.practice || []).map(esc))}
         </div>
       </div>
 
       <div class="card" style="margin-top:16px">
-        <h3>📚 权威资料 <span class="muted small">（读完 / 做完后勾选）</span></h3>
+        <h3 class="with-ico">${icon('book')}权威资料 <span class="muted small">（读完 / 做完后勾选）</span></h3>
         ${checklist(rIds, (t.resources || []).map(resourceLabel))}
       </div>
 
@@ -602,7 +647,7 @@
       </div>
 
       <h2>容易犯的错误</h2>
-      <div class="card">${C.pitfalls.map(p => `<div class="pitfall">❌ ${esc(p)}</div>`).join('')}</div>
+      <div class="card">${C.pitfalls.map(p => `<div class="pitfall with-ico">${icon('oops', 'lg')}<span>${esc(p)}</span></div>`).join('')}</div>
 
       <div class="grid two" style="margin-top:16px">
         <div class="card">
@@ -621,6 +666,9 @@
   // ---------------------------------------------------------------- router
 
   let leaveHooks = [];
+
+  const NAV_ICONS = { dashboard: 'star', roadmap: 'flag', projects: 'flask', resources: 'book', notes: 'pencil', journal: 'flame', principles: 'heart' };
+  document.querySelectorAll('#nav a').forEach(a => a.insertAdjacentHTML('afterbegin', icon(NAV_ICONS[a.dataset.view])));
 
   function render() {
     leaveHooks.forEach(fn => fn());
@@ -666,7 +714,10 @@
     else if (view !== 'resources') { render(); return; }
     if (!st) return;
     const b = main.querySelector('.bar > span');
-    if (b) b.style.width = st.pct + '%';
+    if (b) {
+      b.style.width = st.pct + '%';
+      b.parentElement.classList.toggle('full', st.pct === 100);
+    }
     const label = main.querySelector('.row .muted.small');
     if (label) label.textContent = `${st.done}/${st.total} · ${st.pct}%`;
     if (st.pct === 100) toast('🎉 完成了一个主题！');
