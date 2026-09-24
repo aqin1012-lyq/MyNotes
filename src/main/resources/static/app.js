@@ -45,8 +45,10 @@
   C.stages.forEach(stage => stage.topics.forEach(t => { t.stage = stage; topics.push(t); }));
   const topicById = Object.fromEntries(topics.map(t => [t.id, t]));
 
-  // progress item ids: k = 知识点, p = 实践, r = 资料, m = 项目里程碑
+  // progress item ids: l = 讲义, k = 知识点, p = 实践, r = 资料, m = 项目里程碑
+  const lessonItem = t => `${t.id}:l0`; // "已读完讲义"
   const topicItems = t => [
+    lessonItem(t),
     ...t.points.map((_, i) => `${t.id}:k${i}`),
     ...(t.practice || []).map((_, i) => `${t.id}:p${i}`),
     ...(t.resources || []).map((_, i) => `${t.id}:r${i}`),
@@ -88,6 +90,7 @@
     const lines = (src || '').replace(/\r\n?/g, '\n').split('\n');
     const out = [];
     let i = 0;
+    let h2 = 0;
     const isTableSep = l => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/.test(l);
     const cells = l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => inline(c.trim()));
 
@@ -100,8 +103,19 @@
         while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
         i++;
         out.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`);
+      } else if ((m = /^:::(tip|warn|details)\s*(.*)$/.exec(line))) {
+        const buf = [];
+        i++;
+        while (i < lines.length && lines[i].trim() !== ':::') buf.push(lines[i++]);
+        i++;
+        const title = inline(m[2]);
+        const body = markdown(buf.join('\n'));
+        out.push(m[1] === 'details'
+          ? `<details class="qa"><summary>${title}</summary><div class="qa-body">${body}</div></details>`
+          : `<div class="callout ${m[1]}">${title ? `<div class="callout-title">${title}</div>` : ''}${body}</div>`);
       } else if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
-        out.push(`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`);
+        const level = m[1].length;
+        out.push(`<h${level}${level === 2 ? ` id="sec-${++h2}"` : ''}>${inline(m[2])}</h${level}>`);
         i++;
       } else if (/^\s*(?:(?:-\s*){3,}|(?:\*\s*){3,}|(?:_\s*){3,})$/.test(line)) {
         out.push('<hr>');
@@ -134,7 +148,7 @@
         i++;
       } else {
         const buf = [];
-        while (i < lines.length && lines[i].trim() && !/^(```|#{1,6}\s|>|\s*([-*+]|\d+\.)\s)/.test(lines[i])) {
+        while (i < lines.length && lines[i].trim() && !/^(```|:::|#{1,6}\s|>|\s*([-*+]|\d+\.)\s)/.test(lines[i])) {
           buf.push(inline(lines[i++]));
         }
         out.push(`<p>${buf.join('<br>')}</p>`);
@@ -387,7 +401,30 @@
       </div>`;
   }
 
-  function viewTopic(id) {
+  // section: optional "sec-N" from #/topic/<id>/sec-N, scrolled to once the lesson has rendered
+  async function mountLesson(t, section) {
+    const body = document.getElementById('lesson-body');
+    if (!body) return;
+    const res = await fetch(`lessons/${t.id}.md`);
+    if (!res.ok) {
+      body.innerHTML = '<p class="muted">这篇讲义还在编写中。先看下面的知识点、实践和权威资料吧。</p>';
+      return;
+    }
+    const src = await res.text();
+    body.innerHTML = markdown(src);
+    const chars = src.replace(/\s/g, '').length;
+    document.getElementById('lesson-meta').textContent = `约 ${Math.round(chars / 100) / 10} 千字 · 阅读约 ${Math.max(1, Math.round(chars / 400))} 分钟`;
+    const toc = document.getElementById('lesson-toc');
+    toc.innerHTML = [...body.querySelectorAll('h2[id]')]
+      .map(h => `<button class="link" data-sec="${h.id}">${esc(h.textContent)}</button>`).join('');
+    toc.addEventListener('click', e => {
+      const id = e.target.dataset?.sec;
+      if (id) document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    if (section && /^sec-\d+$/.test(section)) document.getElementById(section)?.scrollIntoView({ block: 'start' });
+  }
+
+  function viewTopic(id, section) {
     const t = topicById[id];
     if (!t) return `<h1>找不到主题</h1><p><a href="#/roadmap">返回路线图</a></p>`;
     const idx = topics.indexOf(t);
@@ -400,12 +437,19 @@
     const template = `# ${t.title}\n\n## 用自己的话讲清楚\n\n\n## 在请求链路 / 系统里的位置\n\n\n## 攻击者会怎么想\n\n${
       (t.questions || []).map(q => `- ${q}\n  - `).join('\n')}\n\n## 在 Java / Spring 里怎么防\n\n\n## 实验记录\n\n\n## 还没搞懂的\n\n`;
 
-    setTimeout(() => mountNoteEditor(template));
+    setTimeout(() => { mountNoteEditor(template); mountLesson(t, section); });
     return `
       <div class="crumbs"><a href="#/roadmap/${t.stage.id}">${esc(t.stage.title)}</a> · 计划 ${esc(t.month)}${t.lab ? ` · 对应实验笔记 <code>docs/labs/${esc(t.lab)}</code>` : ''}</div>
       <div class="row"><h1>${esc(t.title)}</h1><span class="spacer"></span><span class="muted small">${ts.done}/${ts.total} · ${ts.pct}%</span></div>
       ${bar(ts.pct)}
       <p class="summary">${esc(t.summary)}</p>
+
+      <details class="card lesson" id="lesson" open>
+        <summary><span class="with-ico">${icon('book')}讲义</span><span class="muted small" id="lesson-meta"></span></summary>
+        <nav class="toc" id="lesson-toc"></nav>
+        <div class="md lesson-body" id="lesson-body"><p class="muted">加载中…</p></div>
+        <div class="lesson-done">${checklist([lessonItem(t)], ['我已读完这篇讲义，并能用自己的话讲出来'])}</div>
+      </details>
 
       <div class="grid two" style="margin-top:18px">
         <div class="card"><h3>知识点</h3>${checklist(kIds, t.points.map(esc))}</div>
@@ -673,14 +717,14 @@
   function render() {
     leaveHooks.forEach(fn => fn());
     leaveHooks = [];
-    const [view = 'dashboard', arg] = location.hash.replace(/^#\/?/, '').split('/');
+    const [view = 'dashboard', arg, sub] = location.hash.replace(/^#\/?/, '').split('/');
     const views = {
       dashboard: viewDashboard, roadmap: viewRoadmap, topic: viewTopic, projects: viewProjects,
       resources: viewResources, notes: viewNotes, note: viewNote, journal: viewJournal, principles: viewPrinciples,
     };
     const navView = { topic: 'roadmap', note: 'notes' }[view] || view;
     document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('active', a.dataset.view === navView));
-    main.innerHTML = (views[view] || viewDashboard)(arg && decodeURIComponent(arg));
+    main.innerHTML = (views[view] || viewDashboard)(arg && decodeURIComponent(arg), sub);
   }
 
   // checkbox → progress (works on every view)

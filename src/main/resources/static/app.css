@@ -212,3 +212,30 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) {
   #nav a:hover .ico, .pitfall:hover .ico { animation: none; }
 }
+
+/* ---- lessons ---- */
+.lesson { margin-top: 18px; padding-top: 14px; }
+.lesson > summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-weight: 600; font-size: 15px; list-style: none; }
+.lesson > summary::-webkit-details-marker { display: none; }
+.lesson > summary::after { content: '收起'; font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 12px; }
+.lesson:not([open]) > summary::after { content: '展开'; }
+.lesson > summary .muted { margin-left: auto; font-weight: 400; }
+.toc { display: flex; flex-wrap: wrap; gap: 4px 2px; margin: 12px 0 4px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.toc button.link { color: var(--accent); font-size: 13px; }
+.toc button.link:hover { background: var(--accent-soft); border-radius: 6px; }
+.lesson-body { font-size: 15px; line-height: 1.8; max-width: 860px; }
+.lesson-body h2 { font-size: 19px; margin-top: 30px; padding-top: 6px; scroll-margin-top: 16px; }
+.lesson-body h3 { font-size: 16px; margin-top: 22px; }
+.lesson-body pre { font-size: 13px; line-height: 1.55; }
+.lesson-done { margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--border); }
+.md .callout { border-radius: 8px; padding: 2px 14px; margin: 12px 0; border-left: 4px solid; }
+.md .callout.tip { background: color-mix(in srgb, var(--lime) 22%, var(--surface)); border-color: var(--lime-line); }
+.md .callout.warn { background: var(--pink-soft); border-color: var(--pink); }
+.md .callout-title { font-weight: 600; margin-top: 10px; }
+.md details.qa { border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; padding: 0 14px; }
+.md details.qa > summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
+.md details.qa[open] > summary { border-bottom: 1px dashed var(--border); }
+.md details.qa > summary::marker { color: var(--accent); }
+.lesson-body table { font-size: 14px; line-height: 1.6; display: block; overflow-x: auto; }
+.lesson-body th:first-child, .lesson-body td:first-child { min-width: 6em; }
+.lesson-body th, .lesson-body td { vertical-align: top; }

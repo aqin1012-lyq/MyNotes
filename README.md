@@ -31,4 +31,6 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 路线、主题和资料都在 [`src/main/resources/static/curriculum.js`](src/main/resources/static/curriculum.js)。
 进度按列表下标记录，所以**新增条目请加在列表末尾**，不要插在中间或调整顺序。
 
+每个主题的讲义在 [`src/main/resources/static/lessons/<topic-id>.md`](src/main/resources/static/lessons/)，用的是站内精简版 Markdown（`:::tip` / `:::warn` / `:::details` 容器，不支持嵌套列表），`LessonsTests` 会检查每个主题都有格式正确的讲义。
+
 笔记里可以用 `[[topic-id]]` 链接到其他主题。
