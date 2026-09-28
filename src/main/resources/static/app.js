@@ -4,7 +4,7 @@
 
   const C = window.CURRICULUM;
   const main = document.getElementById('main');
-  const state = { progress: {}, log: [], notes: [] };
+  const state = { progress: {}, log: [], notes: [], attempts: [] };
 
   // ---------------------------------------------------------------- helpers
 
@@ -72,12 +72,47 @@
     return topics.find(t => topicStats(t).pct < 100);
   }
 
+  // ---------------------------------------------------------------- algorithm practice (algo.js + study/algo.tsv)
+
+  const ALGO = window.ALGO;
+  const problemBySlug = Object.fromEntries(ALGO.problems.map(p => [p.slug, p]));
+  const DIFF = { E: '简单', M: '中等', H: '困难' };
+  const addDays = (date, n) => { const d = new Date(date + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d); };
+
+  // new → (fail) retry next day → (ac) review after 1/3/7/14/30/60 days of consecutive successes → mastered
+  function algoStatus(slug) {
+    const tries = state.attempts.filter(a => a.slug === slug);
+    if (!tries.length) return { state: 'new', label: '未做', tries };
+    const last = tries.at(-1);
+    const solved = tries.some(a => a.result === 'ac');
+    if (last.result === 'fail') {
+      const due = addDays(last.date, 1);
+      return { state: due <= today() ? 'due' : 'retry', label: '待重做', due, tries, solved };
+    }
+    let streak = 0;
+    for (let i = tries.length - 1; i >= 0 && tries[i].result === 'ac'; i--) streak++;
+    if (streak > ALGO.review.length) return { state: 'mastered', label: '已掌握', tries, solved };
+    const due = addDays(last.date, ALGO.review[streak - 1]);
+    return { state: due <= today() ? 'due' : 'learning', label: due <= today() ? '该复习了' : '复习中', due, tries, solved, streak };
+  }
+
+  function algoStats() {
+    const all = ALGO.problems.map(p => ({ p, st: algoStatus(p.slug) }));
+    return {
+      all,
+      solved: all.filter(x => x.st.solved).length,
+      due: all.filter(x => x.st.state === 'due'),
+      mastered: all.filter(x => x.st.state === 'mastered').length,
+    };
+  }
+
   // ---------------------------------------------------------------- markdown (escape first, so notes can never inject HTML)
 
   function inline(s) {
     const codes = [];
     s = esc(s).replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
     s = s
+      .replace(/\[\[algo:([a-z0-9-]+)\]\]/g, (_, slug) => `<a href="#/algo/${slug}">${esc(problemBySlug[slug] ? `${problemBySlug[slug].no}. ${problemBySlug[slug].title}` : slug)}</a>`)
       .replace(/\[\[([a-z0-9-]+)\]\]/g, (_, id) => `<a href="#/topic/${id}">${esc(topicById[id]?.title || id)}</a>`)
       .replace(/\[([^\]]+)\]\(((?:https?:\/\/|#|\/)[^)\s]*)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
@@ -195,6 +230,9 @@
       <g style="--face:var(--lime-ink)"><circle cx="10.6" cy="11.4" r=".85" fill="var(--face)"/><circle cx="12.6" cy="13.4" r=".85" fill="var(--face)"/></g>`,
     flame: `<path d="M12 21.2c-3.9 0-6.4-2.6-6.4-6 0-3.3 2.5-5.1 3.7-8.1.5 1.8 1.5 2.9 2.6 3.1-.3-2.6.8-5.1 2.9-7 .3 2.9 3.6 5.4 3.6 9.8 0 3.9-2.6 8.2-6.4 8.2z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
       ${eyes(15, 10.3, 13.7)}${smile(17.1, 10.9, 13.1)}`,
+    code: `<rect x="3.5" y="4" width="17" height="16" rx="4.5" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M8.2 9.2L6.4 11l1.8 1.8M15.8 9.2l1.8 1.8-1.8 1.8" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      ${eyes(10.8, 10.4, 13.6)}${smile(13.6, 11, 13)}${blush(14.6, 8.4, 15.6)}`,
     heart: `<path d="M12 20s-7.6-4.6-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.5C19.6 15.4 12 20 12 20z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
       ${eyes(11.6, 9.8, 14.2)}${smile(13.7, 11, 13)}`,
   };
@@ -321,6 +359,7 @@
     const weekMin = state.log.filter(e => e.date >= ymd(weekAgo)).reduce((a, e) => a + e.minutes, 0);
     const cur = currentStage();
     const next = nextTopic();
+    const algo = algoStats();
     const cp = C.checkpoints.find(c => c.date >= today());
     const cpDays = cp ? Math.ceil((new Date(cp.date) - new Date(today())) / 86400000) : 0;
 
@@ -333,6 +372,7 @@
         <div class="card tile"><div class="label">知识点</div><div class="value">${knowledge.done}</div><div class="sub">共 ${knowledge.total} 个</div></div>
         <div class="card tile"><div class="label">项目里程碑</div><div class="value">${projects.done}</div><div class="sub">共 ${projects.total} 个</div></div>
         <div class="card tile"><div class="label">累计学习</div><div class="value">${hours(totalMin)}<small style="font-size:14px"> 小时</small></div><div class="sub">近 7 天 ${weekMin} 分钟</div></div>
+        <div class="card tile"><div class="label with-ico">${icon('code')}刷题</div><div class="value">${algo.solved}<small style="font-size:14px"> / ${ALGO.problems.length}</small></div><div class="sub"><a href="#/algo">${algo.due.length ? `今日待复习 ${algo.due.length} 题 →` : '去刷题 →'}</a></div></div>
         <div class="card tile"><div class="label with-ico">${icon('flame')}连续打卡</div><div class="value">${studyStreak()}<small style="font-size:14px"> 天</small></div><div class="sub"><a href="#/journal">去打卡 →</a></div></div>
       </div>
 
@@ -504,6 +544,138 @@
       </div>`;
   }
 
+  const diffBadge = d => `<span class="diff diff-${d}">${DIFF[d]}</span>`;
+  const statusChip = st => `<span class="st st-${st.state}">${st.label}${st.due && st.state !== 'due' ? ` · ${st.due.slice(5)}` : ''}</span>`;
+
+  function viewAlgo() {
+    const { all, solved, due, mastered } = algoStats();
+    const byDiff = d => `${all.filter(x => x.p.diff === d && x.st.solved).length}/${all.filter(x => x.p.diff === d).length}`;
+    setTimeout(() => {
+      const apply = () => {
+        const q = document.getElementById('aq').value.trim().toLowerCase();
+        const df = document.getElementById('adiff').value;
+        const sf = document.getElementById('astate').value;
+        let n = 0;
+        document.querySelectorAll('#algo-list tr[data-slug]').forEach(tr => {
+          const show = (!q || tr.dataset.q.includes(q)) && (!df || tr.dataset.diff === df) && (!sf || tr.dataset.state === sf);
+          tr.hidden = !show;
+          if (show) n++;
+        });
+        document.querySelectorAll('#algo-list .algo-cat').forEach(c => { c.hidden = !c.querySelector('tr[data-slug]:not([hidden])'); });
+        document.getElementById('acount').textContent = `${n} 题`;
+      };
+      document.querySelectorAll('.filters input, .filters select').forEach(el => el.addEventListener('input', apply));
+      apply();
+    });
+    return `
+      <h1>刷题</h1>
+      <p class="muted">${esc(ALGO.sets[0].title)}：${esc(ALGO.sets[0].desc)} 题意为自己转述，判题请点“力扣 ↗”去官网提交。</p>
+
+      <div class="grid tiles" style="margin-top:18px">
+        <div class="card tile"><div class="label">做出来</div><div class="value">${solved}<small style="font-size:14px"> / ${all.length}</small></div><div class="sub">简单 ${byDiff('E')} · 中等 ${byDiff('M')} · 困难 ${byDiff('H')}</div></div>
+        <div class="card tile"><div class="label">今日待复习</div><div class="value">${due.length}</div><div class="sub">做错的次日重做，做对的按 ${ALGO.review.join('/')} 天复习</div></div>
+        <div class="card tile"><div class="label">已掌握</div><div class="value">${mastered}</div><div class="sub">连续 ${ALGO.review.length + 1} 次做对</div></div>
+      </div>
+
+      ${due.length ? `<div class="card" style="margin-top:16px"><h3 class="with-ico">${icon('flame')}今日待复习</h3>
+        <div class="due-list">${due.map(({ p, st }) => `<a class="due-chip" href="#/algo/${p.slug}">${p.no}. ${esc(p.title)} <span class="muted small">${st.label}</span></a>`).join('')}</div></div>` : ''}
+
+      <div class="filters" style="margin-top:18px">
+        <input type="search" id="aq" placeholder="搜索题号或标题…" style="min-width:220px">
+        <select id="adiff"><option value="">全部难度</option><option value="E">简单</option><option value="M">中等</option><option value="H">困难</option></select>
+        <select id="astate"><option value="">全部状态</option><option value="new">未做</option><option value="due">今日该做</option><option value="retry">待重做</option><option value="learning">复习中</option><option value="mastered">已掌握</option></select>
+        <span class="muted small" id="acount" style="align-self:center"></span>
+      </div>
+
+      <div id="algo-list">
+        ${ALGO.categories.map(c => {
+          const rows = all.filter(x => x.p.cat === c.id);
+          const done = rows.filter(x => x.st.solved).length;
+          return `<section class="card algo-cat" style="margin-bottom:14px">
+            <div class="row"><h3 style="margin:0">${esc(c.title)}</h3><span class="spacer"></span><span class="muted small">${done}/${rows.length}</span></div>
+            <div style="margin:8px 0 6px">${bar(pct(done, rows.length))}</div>
+            <table class="data algo-table"><tbody>
+              ${rows.map(({ p, st }) => `<tr data-slug="${p.slug}" data-diff="${p.diff}" data-state="${st.state}" data-q="${esc((p.no + ' ' + p.title + ' ' + p.slug).toLowerCase())}">
+                <td class="num muted" style="width:52px">${p.no}</td>
+                <td><a href="#/algo/${p.slug}">${esc(p.title)}</a></td>
+                <td style="width:64px">${diffBadge(p.diff)}</td>
+                <td style="width:150px">${statusChip(st)}</td>
+                <td style="width:56px"><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" class="small">力扣 ↗</a></td>
+              </tr>`).join('')}
+            </tbody></table>
+          </section>`;
+        }).join('')}
+      </div>`;
+  }
+
+  async function mountSolution(p) {
+    const box = document.getElementById('solution');
+    if (!box) return;
+    const res = await fetch(`algo/${p.slug}.md`);
+    if (!res.ok) {
+      box.innerHTML = '<p class="muted">这道题的题解还在编写中，先去力扣做题吧。</p>';
+      return;
+    }
+    const md = await res.text();
+    const cut = md.indexOf('\n## 思路');
+    box.innerHTML = cut < 0 ? `<div class="md lesson-body">${markdown(md)}</div>` : `
+      <div class="md lesson-body">${markdown(md.slice(0, cut))}</div>
+      <details class="card lesson spoiler">
+        <summary><span class="with-ico">${icon('bubble')}思路与题解</span><span class="muted small">先自己想 15～20 分钟，卡住了再展开</span></summary>
+        <div class="md lesson-body">${markdown(md.slice(cut))}</div>
+      </details>`;
+  }
+
+  function viewAlgoProblem(slug) {
+    const p = problemBySlug[slug];
+    if (!p) return '<h1>找不到这道题</h1><p><a href="#/algo">返回题单</a></p>';
+    const st = algoStatus(slug);
+    const idx = ALGO.problems.indexOf(p);
+    const prev = ALGO.problems[idx - 1], next = ALGO.problems[idx + 1];
+    const cat = ALGO.categories.find(c => c.id === p.cat);
+    setTimeout(() => {
+      mountSolution(p);
+      mountNoteEditor(`# ${p.no}. ${p.title}\n\n## 我的第一反应\n\n\n## 卡在哪里\n\n\n## 关键点\n\n`);
+      document.querySelectorAll('[data-attempt]').forEach(b => b.addEventListener('click', async () => {
+        try {
+          await api('/algo', 'POST', { slug, result: b.dataset.attempt });
+          state.attempts = await api('/algo') || [];
+          toast(b.dataset.attempt === 'ac' ? '已记录：做出来了 ✓' : '已记录，明天再做一遍');
+          render();
+        } catch (err) { toast('记录失败：' + err.message); }
+      }));
+      document.querySelectorAll('[data-del-attempt]').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm('删除这条做题记录？')) return;
+        await api(`/algo/${b.dataset.delAttempt}`, 'DELETE');
+        state.attempts = await api('/algo') || [];
+        render();
+      }));
+    });
+    return `
+      <div class="crumbs"><a href="#/algo">刷题</a> · ${esc(cat.title)}</div>
+      <div class="row"><h1>${p.no}. ${esc(p.title)}</h1>${diffBadge(p.diff)}<span class="spacer"></span>${statusChip(st)}</div>
+
+      <div class="card row algo-actions" style="margin-top:14px">
+        <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">去力扣做题 ↗</a>
+        <span class="spacer"></span>
+        <span class="muted small">做完记录一下：</span>
+        <button class="primary" data-attempt="ac">✅ 做出来了</button>
+        <button data-attempt="fail">😵 没做出来 / 看了题解</button>
+      </div>
+      ${st.tries.length ? `<p class="small muted" style="margin:8px 2px">做题记录：${st.tries.map(a =>
+        `<span class="attempt">${a.date.slice(5)} ${a.result === 'ac' ? '✅' : '😵'}<button class="link" data-del-attempt="${a.index}" aria-label="删除">✕</button></span>`).join('')}
+        ${st.due ? ` · 下次：${st.due}` : ''}</p>` : ''}
+
+      <div class="card" id="solution" style="margin-top:16px"><p class="muted">加载中…</p></div>
+
+      <div style="margin-top:16px">${noteEditor(`algo-${p.slug}`, '记录你的解题过程…')}</div>
+
+      <div class="pager">
+        <span>${prev ? `← <a href="#/algo/${prev.slug}">${prev.no}. ${esc(prev.title)}</a>` : ''}</span>
+        <span>${next ? `<a href="#/algo/${next.slug}">${next.no}. ${esc(next.title)}</a> →` : ''}</span>
+      </div>`;
+  }
+
   function viewResources() {
     const all = topics.flatMap(t => (t.resources || []).map((r, i) => ({ ...r, id: `${t.id}:r${i}`, topic: t })));
     const types = [...new Set(all.map(r => r.type))];
@@ -551,6 +723,8 @@
 
   function noteTitle(id) {
     if (topicById[id]) return topicById[id].title;
+    const algoP = id.startsWith('algo-') && problemBySlug[id.slice(5)];
+    if (algoP) return `刷题：${algoP.no}. ${algoP.title}`;
     const p = C.projects.find(x => `project-${x.id}` === id);
     if (p) return p.title;
     const cp = C.checkpoints.find(x => x.note === id);
@@ -593,6 +767,7 @@
     if (topicById[id]) { location.replace(`#/topic/${id}`); return ''; }
     const p = C.projects.find(x => `project-${x.id}` === id);
     if (p) { location.replace(`#/projects/${p.id}`); return ''; }
+    if (id.startsWith('algo-') && problemBySlug[id.slice(5)]) { location.replace(`#/algo/${id.slice(5)}`); return ''; }
     setTimeout(() => {
       mountNoteEditor(`# ${noteTitle(id)}\n\n`);
       document.getElementById('del-note').addEventListener('click', async () => {
@@ -711,7 +886,7 @@
 
   let leaveHooks = [];
 
-  const NAV_ICONS = { dashboard: 'star', roadmap: 'flag', projects: 'flask', resources: 'book', notes: 'pencil', journal: 'flame', principles: 'heart' };
+  const NAV_ICONS = { dashboard: 'star', roadmap: 'flag', projects: 'flask', algo: 'code', resources: 'book', notes: 'pencil', journal: 'flame', principles: 'heart' };
   document.querySelectorAll('#nav a').forEach(a => a.insertAdjacentHTML('afterbegin', icon(NAV_ICONS[a.dataset.view])));
 
   function render() {
@@ -720,6 +895,7 @@
     const [view = 'dashboard', arg, sub] = location.hash.replace(/^#\/?/, '').split('/');
     const views = {
       dashboard: viewDashboard, roadmap: viewRoadmap, topic: viewTopic, projects: viewProjects,
+      algo: slug => (slug ? viewAlgoProblem(slug) : viewAlgo()),
       resources: viewResources, notes: viewNotes, note: viewNote, journal: viewJournal, principles: viewPrinciples,
     };
     const navView = { topic: 'roadmap', note: 'notes' }[view] || view;
@@ -774,9 +950,9 @@
   });
   window.addEventListener('beforeunload', () => leaveHooks.forEach(fn => fn()));
 
-  Promise.all([api('/progress'), api('/log'), api('/notes')])
-    .then(([progress, log, notes]) => {
-      Object.assign(state, { progress: progress || {}, log: log || [], notes: notes || [] });
+  Promise.all([api('/progress'), api('/log'), api('/notes'), api('/algo')])
+    .then(([progress, log, notes, attempts]) => {
+      Object.assign(state, { progress: progress || {}, log: log || [], notes: notes || [], attempts: attempts || [] });
       render();
     })
     .catch(err => { main.innerHTML = `<h1>无法连接后端</h1><p class="muted">${esc(err.message)}：请先 <code>./mvnw spring-boot:run</code></p>`; });

@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -26,6 +27,7 @@ import java.util.stream.Stream;
  * <pre>
  * study/progress.tsv   itemId  TAB  yyyy-MM-dd
  * study/log.tsv        date TAB minutes TAB topicId TAB text
+ * study/algo.tsv       date TAB problem slug TAB ac|fail
  * study/notes/{id}.md
  * </pre>
  */
@@ -35,17 +37,21 @@ public class StudyStore {
     // Ids end up in file names: whitelist them so "../" can never reach the file system (see Lab 06).
     private static final Pattern NOTE_ID = Pattern.compile("[a-z0-9][a-z0-9-]{0,63}");
     private static final Pattern ITEM_ID = Pattern.compile("[a-z0-9][a-z0-9:.-]{0,99}");
+    private static final Pattern SLUG = Pattern.compile("[a-z0-9][a-z0-9-]{0,99}");
+    private static final Set<String> RESULTS = Set.of("ac", "fail");
 
     private final Path root;
     private final Path notesDir;
     private final Path progressFile;
     private final Path logFile;
+    private final Path algoFile;
 
     public StudyStore(@Value("${mynotes.study.dir:study}") Path root) {
         this.root = root.toAbsolutePath().normalize();
         this.notesDir = this.root.resolve("notes");
         this.progressFile = this.root.resolve("progress.tsv");
         this.logFile = this.root.resolve("log.tsv");
+        this.algoFile = this.root.resolve("algo.tsv");
         try {
             Files.createDirectories(notesDir);
         } catch (IOException e) {
@@ -114,12 +120,40 @@ public class StudyStore {
     }
 
     public synchronized void deleteLog(int index) {
-        List<String> lines = readLines(logFile);
-        if (index < 0 || index >= lines.size()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        deleteLine(logFile, index);
+    }
+
+    // ---- algorithm practice attempts ----
+
+    public record Attempt(int index, LocalDate date, String slug, String result) {
+    }
+
+    public synchronized List<Attempt> attempts() {
+        List<Attempt> attempts = new ArrayList<>();
+        List<String> lines = readLines(algoFile);
+        for (int i = 0; i < lines.size(); i++) {
+            String[] cols = lines.get(i).split("\t", 3);
+            if (cols.length == 3) {
+                attempts.add(new Attempt(i, LocalDate.parse(cols[0]), cols[1], cols[2]));
+            }
         }
-        lines.remove(index);
-        writeLines(logFile, lines);
+        return attempts;
+    }
+
+    public synchronized Attempt addAttempt(String slug, String result) {
+        check(SLUG, slug);
+        if (!RESULTS.contains(result)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "result must be ac or fail");
+        }
+        LocalDate today = LocalDate.now();
+        List<String> lines = readLines(algoFile);
+        lines.add(today + "\t" + slug + "\t" + result);
+        writeLines(algoFile, lines);
+        return new Attempt(lines.size() - 1, today, slug, result);
+    }
+
+    public synchronized void deleteAttempt(int index) {
+        deleteLine(algoFile, index);
     }
 
     // ---- notes ----
@@ -181,6 +215,15 @@ public class StudyStore {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid id");
         }
         return id;
+    }
+
+    private static void deleteLine(Path file, int index) {
+        List<String> lines = readLines(file);
+        if (index < 0 || index >= lines.size()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        lines.remove(index);
+        writeLines(file, lines);
     }
 
     private static List<String> readLines(Path file) {

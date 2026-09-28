@@ -239,3 +239,25 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .lesson-body table { font-size: 14px; line-height: 1.6; display: block; overflow-x: auto; }
 .lesson-body th:first-child, .lesson-body td:first-child { min-width: 6em; }
 .lesson-body th, .lesson-body td { vertical-align: top; }
+
+/* ---- algorithm practice ---- */
+.diff { font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.diff-E { background: color-mix(in srgb, var(--lime) 45%, var(--surface)); color: var(--text); }
+.diff-M { background: var(--accent-soft); color: var(--text); }
+.diff-H { background: var(--pink-soft); color: var(--text); border: 1px solid var(--pink); }
+.st { font-size: 12px; white-space: nowrap; color: var(--text-2); }
+.st-new { color: var(--muted); }
+.st-due { color: var(--lime-ink); background: var(--lime); padding: 1px 8px; border-radius: 999px; font-weight: 600; }
+.st-retry { color: var(--pink); font-weight: 600; }
+.st-mastered::before { content: '★ '; color: var(--lime-line); }
+.algo-table td { padding: 7px 6px; vertical-align: middle; }
+.algo-table tr:last-child td { border-bottom: 0; }
+.due-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.due-chip { border: 1px solid var(--lime-line); border-radius: 999px; padding: 3px 12px; color: var(--text); font-size: 14px; }
+.due-chip:hover { background: color-mix(in srgb, var(--lime) 30%, var(--surface)); text-decoration: none; }
+.algo-actions .btn { border: 1px solid var(--accent); border-radius: 8px; padding: 6px 12px; font-size: 13px; }
+.attempt { display: inline-flex; align-items: center; margin-right: 6px; }
+.attempt button.link { padding: 0 3px; font-size: 11px; }
+.spoiler { margin-top: 14px; }
+.spoiler:not([open]) { background: color-mix(in srgb, var(--accent-soft) 35%, var(--surface)); }
+#solution > .md > h2:first-child { margin-top: 4px; }

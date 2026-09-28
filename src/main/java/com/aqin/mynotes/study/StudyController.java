@@ -31,6 +31,9 @@ public class StudyController {
     public record NoteRequest(String content) {
     }
 
+    public record AttemptRequest(String slug, String result) {
+    }
+
     private final StudyStore store;
 
     public StudyController(StudyStore store) {
@@ -60,6 +63,21 @@ public class StudyController {
     @DeleteMapping("/log/{index}")
     public void deleteLog(@PathVariable int index) {
         store.deleteLog(index);
+    }
+
+    @GetMapping("/algo")
+    public List<StudyStore.Attempt> attempts() {
+        return store.attempts();
+    }
+
+    @PostMapping("/algo")
+    public StudyStore.Attempt addAttempt(@RequestBody AttemptRequest request) {
+        return store.addAttempt(request.slug(), request.result());
+    }
+
+    @DeleteMapping("/algo/{index}")
+    public void deleteAttempt(@PathVariable int index) {
+        store.deleteAttempt(index);
     }
 
     @GetMapping("/notes")

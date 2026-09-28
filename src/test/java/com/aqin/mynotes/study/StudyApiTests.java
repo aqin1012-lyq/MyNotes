@@ -57,6 +57,26 @@ class StudyApiTests {
     }
 
     @Test
+    void algoAttemptsAreRecordedAndValidated() throws Exception {
+        int before = store.attempts().size();
+        mvc.perform(post("/api/study/algo").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"slug\":\"two-sum\",\"result\":\"ac\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slug").value("two-sum"))
+                .andExpect(jsonPath("$.result").value("ac"));
+        assertThat(store.attempts()).hasSize(before + 1);
+        mvc.perform(delete("/api/study/algo/" + before)).andExpect(status().isOk());
+        assertThat(store.attempts()).hasSize(before);
+
+        mvc.perform(post("/api/study/algo").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"slug\":\"two-sum\",\"result\":\"maybe\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/study/algo").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"slug\":\"../x\",\"result\":\"ac\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void logEntriesAreAppendedAndDeleted() throws Exception {
         int before = store.log().size();
         mvc.perform(post("/api/study/log").contentType(MediaType.APPLICATION_JSON)
