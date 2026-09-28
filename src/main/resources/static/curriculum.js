@@ -388,7 +388,7 @@ window.CURRICULUM = {
           ],
         },
         {
-          id: 'web-upload', title: '文件上传与路径穿越', month: '2027-02',
+          id: 'web-upload', title: '文件上传与路径穿越', month: '2027-02', lab: '06-upload.md',
           summary: '文件名和路径是用户输入。上传 WebShell、覆盖配置、读取任意文件都源于此。',
           points: [
             '路径穿越：../、编码绕过、Path.normalize 与 startsWith 校验',
