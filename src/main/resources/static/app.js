@@ -249,6 +249,136 @@
       ${eyes(11.6, 9.8, 14.2)}${smile(13.7, 11, 13)}`,
   };
 
+  // more cute icons, mostly for notes (see EMOJI_ICONS below)
+  Object.assign(ICONS, {
+    calendar: `<rect x="3.5" y="5" width="17" height="15.5" rx="3.5" fill="var(--surface)" stroke="var(--accent)" ${LINE}/>
+      <path d="M3.5 8.5a3.5 3.5 0 0 1 3.5-3.5h10a3.5 3.5 0 0 1 3.5 3.5V10h-17z" fill="var(--lime)" stroke="var(--accent)" ${LINE}/>
+      <path d="M8 3.5v3M16 3.5v3" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>
+      ${eyes(14.3, 10.2, 13.8)}${smile(16.4, 10.8, 13.2)}${blush(16, 7.8, 16.2)}`,
+    link: `<rect x="2.8" y="8.2" width="10.5" height="7.6" rx="3.8" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <rect x="10.7" y="8.2" width="10.5" height="7.6" rx="3.8" fill="var(--lime)" fill-opacity=".55" stroke="var(--lime-line)" stroke-width="2"/>
+      <g style="--face:var(--lime-ink)">${eyes(11.4, 15, 17.4)}${smile(13, 15.4, 17)}</g>`,
+    bulb: `<path d="M12 2.8a6.6 6.6 0 0 0-3.9 11.9c.7.6 1.1 1.3 1.1 2.1v.7h5.6v-.7c0-.8.4-1.5 1.1-2.1A6.6 6.6 0 0 0 12 2.8z" fill="var(--lime)" stroke="var(--lime-line)" ${LINE}/>
+      <path d="M9.6 19.4h4.8M10.3 21.2h3.4" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>
+      <g style="--face:var(--lime-ink)">${eyes(9.4, 10.3, 13.7)}${smile(11.6, 11, 13)}</g>${blush(11.2, 8.4, 15.6)}`,
+    pin: `<path d="M12 14.5v7" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="12" cy="9" r="6.3" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      ${eyes(8.6, 10.3, 13.7)}${smile(10.8, 11, 13)}${blush(10.2, 7.9, 16.1)}`,
+    target: `<circle cx="12" cy="12" r="9.3" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      <circle cx="12" cy="12" r="5.8" fill="var(--surface)" stroke="var(--pink)" stroke-width="1.3"/>
+      ${eyes(11, 10.3, 13.7)}${smile(13.1, 11, 13)}`,
+    chart: `<rect x="3" y="3.5" width="18" height="17" rx="4" fill="var(--surface)" stroke="var(--accent)" ${LINE}/>
+      <rect x="6.3" y="12" width="3" height="5.5" rx="1.2" fill="var(--pink)"/>
+      <rect x="10.5" y="8.5" width="3" height="9" rx="1.2" fill="var(--accent)"/>
+      <rect x="14.7" y="6" width="3" height="11.5" rx="1.2" fill="var(--lime-line)"/>`,
+    warn: `<path d="M10.3 4.2a2 2 0 0 1 3.4 0l7.4 12.9a2 2 0 0 1-1.7 3H4.6a2 2 0 0 1-1.7-3z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      ${eyes(13.2, 10.3, 13.7)}<path d="M11 16.6q1-.9 2 0" ${FACE}/>${blush(15.4, 8.3, 15.7)}`,
+    search: `<circle cx="10.2" cy="10.2" r="6.6" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M15 15l5.2 5.2" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/>
+      ${eyes(9.4, 8.6, 11.8)}${smile(11.6, 9.2, 11.2)}`,
+    bug: `<path d="M12 5.5v15M6.2 9.5l-2.4-1.4M17.8 9.5l2.4-1.4M5.8 14H3.2M18.2 14h2.6M6.4 18.2l-2 1.6M17.6 18.2l2 1.6" stroke="var(--face)" stroke-width="1.3" stroke-linecap="round"/>
+      <ellipse cx="12" cy="13.8" rx="6.3" ry="7" fill="var(--pink)" stroke="var(--pink)" stroke-width="1.2"/>
+      <path d="M12 7.2v13.5" stroke="var(--face)" stroke-width="1.1"/>
+      <circle cx="9.2" cy="15.6" r="1.1" fill="var(--face)"/><circle cx="14.8" cy="15.6" r="1.1" fill="var(--face)"/>
+      <circle cx="12" cy="6.4" r="3.4" fill="var(--pink-soft)" stroke="var(--pink)" stroke-width="1.2"/>
+      <circle cx="10.8" cy="6.2" r=".7" fill="var(--face)"/><circle cx="13.2" cy="6.2" r=".7" fill="var(--face)"/>`,
+    globe: `<circle cx="12" cy="12" r="9.3" fill="color-mix(in srgb, var(--lime) 45%, var(--surface))" stroke="var(--lime-line)" ${LINE}/>
+      <path d="M2.9 12h18.2M12 2.7c2.6 2.6 3.8 5.7 3.8 9.3s-1.2 6.7-3.8 9.3M12 2.7C9.4 5.3 8.2 8.4 8.2 12s1.2 6.7 3.8 9.3" fill="none" stroke="var(--lime-line)" stroke-width="1.1"/>`,
+    clock: `<circle cx="12" cy="12.5" r="8.8" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M12 7.6v5l3 1.8" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M9 2.6h6" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>${blush(16.2, 7, 17)}`,
+    shield: `<path d="M12 2.8l7.5 3v5.6c0 4.9-3.2 8.3-7.5 9.8-4.3-1.5-7.5-4.9-7.5-9.8V5.8z" fill="var(--lime)" stroke="var(--lime-line)" ${LINE}/>
+      <g style="--face:var(--lime-ink)">${eyes(10.8, 10.2, 13.8)}${smile(13.4, 10.9, 13.1)}</g>${blush(12.6, 7.9, 16.1)}`,
+    sword: `<path d="M18.8 3.2l2 2-10.3 10.3-2-2z" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M6.2 13.4l4.4 4.4M8.6 15.8l-3.9 3.9" stroke="var(--pink)" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="4.2" cy="20.2" r="1.3" fill="var(--pink)"/>`,
+    wrench: `<path d="M14.8 3.5a4.8 4.8 0 0 0-4.4 6.6l-6.6 6.6a1.9 1.9 0 0 0 2.7 2.7l6.6-6.6a4.8 4.8 0 0 0 6.6-4.4l-2.9 1.4-2.2-.6-.6-2.2z" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <circle cx="5.4" cy="18.4" r=".9" fill="var(--accent)"/>`,
+    question: `<path d="M7 4.5h10a4 4 0 0 1 4 4v4.5a4 4 0 0 1-4 4h-6.2L7 20v-3.1A4 4 0 0 1 3 13V8.5a4 4 0 0 1 4-4z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      <path d="M10.2 8.6a1.9 1.9 0 1 1 2.6 1.8c-.6.3-.8.7-.8 1.3v.4" fill="none" stroke="var(--face)" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="12" cy="14.2" r=".9" fill="var(--face)"/>`,
+    rocket: `<path d="M12 2.8c3.4 2.2 5 5.6 4.6 10.2l-2.3 2.8H9.7l-2.3-2.8C7 8.4 8.6 5 12 2.8z" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M7.6 12.5L5 15.8l3.6-.3M16.4 12.5l2.6 3.3-3.6-.3" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      <path d="M10.4 17.6q1.6 3.4 3.2 0" fill="var(--lime)" stroke="var(--lime-line)" stroke-width="1.2"/>
+      ${eyes(9.4, 10.6, 13.4)}${smile(11.4, 11.2, 12.8)}`,
+    eye: `<path d="M2.8 12c2.4-4.2 5.5-6.3 9.2-6.3s6.8 2.1 9.2 6.3c-2.4 4.2-5.5 6.3-9.2 6.3S5.2 16.2 2.8 12z" fill="var(--surface)" stroke="var(--accent)" ${LINE}/>
+      <circle cx="12" cy="12" r="3.6" fill="var(--accent)"/><circle cx="13.2" cy="10.8" r="1.1" fill="#fff"/>`,
+    trash: `<path d="M5.5 7.5h13l-1.1 11.6a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      <path d="M4 7.5h16M9.5 7.5V5.2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2.3" fill="none" stroke="var(--pink)" stroke-width="1.5" stroke-linecap="round"/>
+      ${eyes(12.8, 10.2, 13.8)}<path d="M11 16.2q1-.8 2 0" ${FACE}/>`,
+    folder: `<path d="M3 7a2.2 2.2 0 0 1 2.2-2.2h4.3l2 2.2h7.3A2.2 2.2 0 0 1 21 9.2v8.6a2.2 2.2 0 0 1-2.2 2.2H5.2A2.2 2.2 0 0 1 3 17.8z" fill="var(--lime)" stroke="var(--lime-line)" ${LINE}/>
+      <g style="--face:var(--lime-ink)">${eyes(13, 10.2, 13.8)}${smile(15.2, 11, 13)}</g>${blush(14.8, 7.8, 16.2)}`,
+    tag: `<path d="M3.5 4.8v6.1a2 2 0 0 0 .6 1.4l8.3 8.3a2 2 0 0 0 2.8 0l5.4-5.4a2 2 0 0 0 0-2.8l-8.3-8.3a2 2 0 0 0-1.4-.6H4.8a1.3 1.3 0 0 0-1.3 1.3z" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      <circle cx="7.8" cy="8.3" r="1.5" fill="var(--surface)" stroke="var(--pink)" stroke-width="1.2"/>
+      ${eyes(13.4, 12.4, 15.2)}`,
+    person: `<circle cx="12" cy="8.6" r="4.6" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M4.2 20.4c.6-4 3.8-6.6 7.8-6.6s7.2 2.6 7.8 6.6z" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      ${eyes(8.5, 10.4, 13.6)}${smile(10.3, 11.1, 12.9)}`,
+    house: `<path d="M3.8 11.2L12 4l8.2 7.2V19a1.8 1.8 0 0 1-1.8 1.8H5.6A1.8 1.8 0 0 1 3.8 19z" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <rect x="10" y="15.4" width="4" height="5.4" rx="1" fill="var(--lime)" stroke="var(--lime-line)" stroke-width="1.2"/>
+      ${eyes(11.4, 10, 14)}${smile(13, 11.1, 12.9)}`,
+    cycle: `<path d="M19.5 10.2A7.8 7.8 0 0 0 5.4 7.4M4.5 13.8a7.8 7.8 0 0 0 14.1 2.8" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+      <path d="M5 3.8v3.9h3.9M19 20.2v-3.9h-3.9" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      ${eyes(11.3, 10.3, 13.7)}${smile(13.3, 11, 13)}`,
+    battery: `<rect x="2.8" y="7" width="16" height="10.5" rx="3" fill="var(--surface)" stroke="var(--accent)" ${LINE}/>
+      <rect x="4.6" y="8.8" width="9.4" height="6.9" rx="1.6" fill="var(--lime)"/>
+      <path d="M20.6 10.3v3.9" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
+      <g style="--face:var(--lime-ink)">${eyes(11.6, 7.8, 10.8)}${smile(13.6, 8.3, 10.3)}</g>`,
+    compass: `<circle cx="12" cy="12" r="9.3" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M12 5.2l2.4 6.8H9.6z" fill="var(--pink)"/><path d="M12 18.8l-2.4-6.8h4.8z" fill="var(--surface)" stroke="var(--accent)" stroke-width=".9"/>
+      <circle cx="12" cy="12" r="1.2" fill="var(--accent)"/>`,
+    briefcase: `<rect x="3" y="7.5" width="18" height="12.5" rx="3" fill="var(--accent-soft)" stroke="var(--accent)" ${LINE}/>
+      <path d="M9 7.5V5.6a1.4 1.4 0 0 1 1.4-1.4h3.2A1.4 1.4 0 0 1 15 5.6v1.9" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+      <rect x="10.4" y="11.2" width="3.2" height="2.2" rx=".6" fill="var(--lime)"/>
+      ${eyes(15.6, 9.2, 14.8)}${smile(17.2, 11, 13)}`,
+    dot: `<circle cx="12" cy="12" r="8.5" fill="var(--c, var(--lime))" stroke="var(--face)" stroke-opacity=".25" stroke-width="1"/>
+      <g style="--face:#2b2140">${eyes(11, 10.2, 13.8)}${smile(13.4, 10.9, 13.1)}</g>`,
+    cross: `<circle cx="12" cy="12" r="9.5" fill="var(--pink-soft)" stroke="var(--pink)" ${LINE}/>
+      <path d="M9 9l6 6M15 9l-6 6" stroke="var(--pink)" stroke-width="2.2" stroke-linecap="round"/>`,
+  });
+
+  // emoji → cute icon, applied to note text (never inside code)
+  const EMOJI_ICONS = {
+    '📘': 'book', '📖': 'book', '📚': 'book', '📄': 'book', '📗': 'book', '📕': 'book',
+    '📅': 'calendar', '🗓': 'calendar', '📆': 'calendar',
+    '⭐': 'star', '🌟': 'star', '🏆': 'star', '✨': 'star',
+    '🔗': 'link', '💡': 'bulb', '📌': 'pin', '📍': 'pin', '🎯': 'target',
+    '📊': 'chart', '📈': 'chart', '⚠': 'warn', '🚨': 'warn',
+    '🔍': 'search', '🔎': 'search', '🐞': 'bug', '🐛': 'bug', '🌐': 'globe',
+    '⏱': 'clock', '⏰': 'clock', '🕐': 'clock', '🧪': 'flask', '🔬': 'flask',
+    '🧰': 'wrench', '🛠': 'wrench', '🔧': 'wrench', '🛡': 'shield', '🗡': 'sword', '⚔': 'sword',
+    '🧠': 'bubble', '💬': 'bubble', '🗣': 'bubble', '❓': 'question', '🤔': 'question',
+    '🧩': 'code', '💻': 'code', '👍': 'happy', '✅': 'happy', '😊': 'happy', '🎉': 'happy',
+    '👎': 'oops', '😵': 'oops', '❌': 'cross', '🔋': 'battery', '🧭': 'compass',
+    '💼': 'briefcase', '🏢': 'house', '🏠': 'house', '👤': 'person', '🙋': 'person',
+    '🔁': 'cycle', '🔄': 'cycle', '📂': 'folder', '📁': 'folder', '🏷': 'tag',
+    '✏': 'pencil', '📝': 'pencil', '✍': 'pencil', '🔤': 'pencil', '✂': 'pencil',
+    '🚀': 'rocket', '👁': 'eye', '🗑': 'trash', '🔥': 'flame', '❤': 'heart', '💜': 'heart',
+    '🟡': 'dot:#f5c542', '🟢': 'dot:var(--lime)', '🔴': 'dot:var(--pink)',
+  };
+  const EMOJI_RE = new RegExp(`(${Object.keys(EMOJI_ICONS).join('|')})\\uFE0F?`, 'gu');
+
+  function cuteIconHtml(emoji) {
+    const [name, color] = EMOJI_ICONS[emoji].split(':');
+    return `<span class="emo" title="${emoji}"${color ? ` style="--c:${color}"` : ''}>${icon(name)}</span>`;
+  }
+
+  // walks text nodes under root (skipping code / pre / form fields) and swaps emoji for cute icons
+  function cutify(root) {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => n.parentElement.closest('pre, code, textarea, option, .emo')
+        ? NodeFilter.FILTER_REJECT : (EMOJI_RE.lastIndex = 0, EMOJI_RE.test(n.data) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP),
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const n of nodes) {
+      const span = document.createElement('span');
+      span.innerHTML = esc(n.data).replace(EMOJI_RE, m => cuteIconHtml(m.replace(/\uFE0F/g, '')));
+      n.replaceWith(...span.childNodes);
+    }
+  }
+
   const icon = (name, cls = '') =>
     `<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
 
@@ -297,9 +427,10 @@
     const text = document.getElementById('note-text');
     const preview = document.getElementById('note-preview');
     const saveState = document.getElementById('save-state');
+    const showPreview = () => { preview.innerHTML = markdown(text.value); cutify(preview); };
     const note = await api(`/notes/${id}`);
     text.value = note ? note.content : (template || '');
-    preview.innerHTML = markdown(text.value);
+    showPreview();
     saveState.textContent = note ? `上次保存 ${new Date(note.updatedAt).toLocaleString()}` : '尚未保存';
 
     let timer;
@@ -320,7 +451,7 @@
     text.addEventListener('input', () => {
       dirty = true;
       saveState.textContent = '编辑中…';
-      preview.innerHTML = markdown(text.value);
+      showPreview();
       clearTimeout(timer);
       timer = setTimeout(save, 800);
     });
@@ -334,7 +465,7 @@
       if (!await deleteNote(id)) return;
       if (onDelete) { leaveHooks = []; onDelete(); return; }
       text.value = template || ''; // back to a fresh, unsaved template
-      preview.innerHTML = markdown(text.value);
+      showPreview();
       saveState.textContent = '已删除，重新输入会新建';
     });
     card.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
@@ -746,6 +877,7 @@ ${F}
     const cur = currentStage();
     const next = nextTopic();
     const algo = algoStats();
+    setTimeout(() => cutify(document.getElementById('recent-notes')));
     const cp = C.checkpoints.find(c => c.date >= today());
     const cpDays = cp ? Math.ceil((new Date(cp.date) - new Date(today())) / 86400000) : 0;
 
@@ -789,7 +921,7 @@ ${F}
       </div>
 
       <h2>最近的笔记</h2>
-      <div class="card">
+      <div class="card" id="recent-notes">
         ${state.notes.slice(0, 6).map(n => `<a class="note-item" href="${noteHref(n.id)}">
           <div class="row">${kindPill(n.id)}<strong>${esc(noteTitle(n.id))}</strong><span class="spacer"></span>
           <span class="muted small">${new Date(n.updatedAt).toLocaleString()} · ${n.length} 字</span></div>
@@ -1234,6 +1366,7 @@ ${F}
     document.getElementById('ncount').textContent = q ? `找到 ${list.length} 篇` : `共 ${list.length} 篇`;
     box.innerHTML = list.map(n => noteRow(n, q, n.id === selected)).join('')
       || `<p class="muted" style="padding:12px 4px">${q ? '没有找到包含这个关键词的笔记。' : '还没有笔记，用上面的模板新建一篇吧。'}</p>`;
+    cutify(box);
     box.scrollTop = noteUi.scroll;
   }
 
@@ -1298,12 +1431,17 @@ ${F}
         sessionStorage.setItem('noteMode', 'edit');
         location.hash = `#/notes/${id}`;
       });
-      document.getElementById('new-tpl').addEventListener('change', e => {
-        const tpl = NOTE_TEMPLATES[e.target.value];
+      document.querySelectorAll('[data-tpl]').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('[data-tpl]').forEach(x => x.classList.toggle('on', x === b));
+        document.getElementById('new-tpl').value = b.dataset.tpl;
+        const tpl = NOTE_TEMPLATES[b.dataset.tpl];
         const input = document.getElementById('new-id');
         if (tpl.id && !input.value) input.value = tpl.id();
-      });
+        input.focus();
+      }));
       refreshNoteList(selected);
+      cutify(document.querySelector('.note-head'));
+      cutify(document.querySelector('.tpl-chips'));
       if (selected) mountNotePanel(selected);
     });
     return `
@@ -1311,8 +1449,10 @@ ${F}
       <p class="muted">所有笔记都在这里 新建 / 查看 / 编辑 / 重命名 / 删除 / 搜索；文件保存在 <code>study/notes/*.md</code>。</p>
 
       <form id="new-note" class="card row" style="margin-top:16px">
-        <strong>＋ 新建</strong>
-        <select id="new-tpl" aria-label="模板">${Object.entries(NOTE_TEMPLATES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select>
+        <strong style="width:100%">＋ 新建笔记 <span class="muted small" style="font-weight:400">选一个模板，填上 id</span></strong>
+        <input type="hidden" id="new-tpl" value="study">
+        <div class="tpl-chips">${Object.entries(NOTE_TEMPLATES).map(([k, v], i) =>
+          `<button type="button" data-tpl="${k}" class="${i ? '' : 'on'}">${esc(v.label)}</button>`).join('')}</div>
         <input type="text" id="new-id" placeholder="笔记 id，如 spring-security-filter" required style="flex:1;min-width:200px">
         <button class="primary">新建并编辑</button>
       </form>
