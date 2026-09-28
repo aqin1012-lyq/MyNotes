@@ -261,3 +261,6 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .spoiler { margin-top: 14px; }
 .spoiler:not([open]) { background: color-mix(in srgb, var(--accent-soft) 35%, var(--surface)); }
 #solution > .md > h2:first-child { margin-top: 4px; }
+.set-tabs { display: flex; gap: 8px; margin: 10px 0 4px; flex-wrap: wrap; }
+.set-tabs button { font-size: 14px; padding: 7px 14px; }
+.set-tabs button.on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }

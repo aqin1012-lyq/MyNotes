@@ -77,6 +77,10 @@
   const ALGO = window.ALGO;
   const problemBySlug = Object.fromEntries(ALGO.problems.map(p => [p.slug, p]));
   const DIFF = { E: '简单', M: '中等', H: '困难' };
+  const setById = Object.fromEntries(ALGO.sets.map(x => [x.id, x]));
+  const catOf = p => setById[p.set].categories.find(c => c.id === p.cat);
+  const plabel = p => (p.no ? `${p.no}. ` : '') + p.title;
+  let algoSet = localStorage.getItem('algoSet') || ALGO.sets[0].id;
   const addDays = (date, n) => { const d = new Date(date + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d); };
 
   // new → (fail) retry next day → (ac) review after 1/3/7/14/30/60 days of consecutive successes → mastered
@@ -96,8 +100,8 @@
     return { state: due <= today() ? 'due' : 'learning', label: due <= today() ? '该复习了' : '复习中', due, tries, solved, streak };
   }
 
-  function algoStats() {
-    const all = ALGO.problems.map(p => ({ p, st: algoStatus(p.slug) }));
+  function algoStats(setId) {
+    const all = ALGO.problems.filter(p => !setId || p.set === setId).map(p => ({ p, st: algoStatus(p.slug) }));
     return {
       all,
       solved: all.filter(x => x.st.solved).length,
@@ -112,7 +116,7 @@
     const codes = [];
     s = esc(s).replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
     s = s
-      .replace(/\[\[algo:([a-z0-9-]+)\]\]/g, (_, slug) => `<a href="#/algo/${slug}">${esc(problemBySlug[slug] ? `${problemBySlug[slug].no}. ${problemBySlug[slug].title}` : slug)}</a>`)
+      .replace(/\[\[algo:([a-z0-9-]+)\]\]/g, (_, slug) => `<a href="#/algo/${slug}">${esc(problemBySlug[slug] ? plabel(problemBySlug[slug]) : slug)}</a>`)
       .replace(/\[\[([a-z0-9-]+)\]\]/g, (_, id) => `<a href="#/topic/${id}">${esc(topicById[id]?.title || id)}</a>`)
       .replace(/\[([^\]]+)\]\(((?:https?:\/\/|#|\/)[^)\s]*)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
@@ -372,7 +376,7 @@
         <div class="card tile"><div class="label">知识点</div><div class="value">${knowledge.done}</div><div class="sub">共 ${knowledge.total} 个</div></div>
         <div class="card tile"><div class="label">项目里程碑</div><div class="value">${projects.done}</div><div class="sub">共 ${projects.total} 个</div></div>
         <div class="card tile"><div class="label">累计学习</div><div class="value">${hours(totalMin)}<small style="font-size:14px"> 小时</small></div><div class="sub">近 7 天 ${weekMin} 分钟</div></div>
-        <div class="card tile"><div class="label with-ico">${icon('code')}刷题</div><div class="value">${algo.solved}<small style="font-size:14px"> / ${ALGO.problems.length}</small></div><div class="sub"><a href="#/algo">${algo.due.length ? `今日待复习 ${algo.due.length} 题 →` : '去刷题 →'}</a></div></div>
+        <div class="card tile"><div class="label with-ico">${icon('code')}刷题</div><div class="value">${algo.solved}<small style="font-size:14px"> / ${algo.all.length}</small></div><div class="sub"><a href="#/algo">${algo.due.length ? `今日待复习 ${algo.due.length} 题 →` : '去刷题 →'}</a></div></div>
         <div class="card tile"><div class="label with-ico">${icon('flame')}连续打卡</div><div class="value">${studyStreak()}<small style="font-size:14px"> 天</small></div><div class="sub"><a href="#/journal">去打卡 →</a></div></div>
       </div>
 
@@ -548,7 +552,9 @@
   const statusChip = st => `<span class="st st-${st.state}">${st.label}${st.due && st.state !== 'due' ? ` · ${st.due.slice(5)}` : ''}</span>`;
 
   function viewAlgo() {
-    const { all, solved, due, mastered } = algoStats();
+    const set = setById[algoSet] || ALGO.sets[0];
+    const { all, solved, mastered } = algoStats(set.id);
+    const due = algoStats().due; // today's reviews span every set
     const byDiff = d => `${all.filter(x => x.p.diff === d && x.st.solved).length}/${all.filter(x => x.p.diff === d).length}`;
     setTimeout(() => {
       const apply = () => {
@@ -565,11 +571,18 @@
         document.getElementById('acount').textContent = `${n} 题`;
       };
       document.querySelectorAll('.filters input, .filters select').forEach(el => el.addEventListener('input', apply));
+      document.querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => {
+        algoSet = b.dataset.set;
+        localStorage.setItem('algoSet', algoSet);
+        render();
+      }));
       apply();
     });
     return `
       <h1>刷题</h1>
-      <p class="muted">${esc(ALGO.sets[0].title)}：${esc(ALGO.sets[0].desc)} 题意为自己转述，判题请点“力扣 ↗”去官网提交。</p>
+      <div class="set-tabs">${ALGO.sets.map(x => `<button data-set="${x.id}" class="${x.id === set.id ? 'on' : ''}">${esc(x.title)}
+        <span class="muted small">${algoStats(x.id).solved}/${ALGO.problems.filter(p => p.set === x.id).length}</span></button>`).join('')}</div>
+      <p class="muted">${esc(set.desc)} 题意为自己转述，有题号的点“力扣 ↗”去官网提交判题。</p>
 
       <div class="grid tiles" style="margin-top:18px">
         <div class="card tile"><div class="label">做出来</div><div class="value">${solved}<small style="font-size:14px"> / ${all.length}</small></div><div class="sub">简单 ${byDiff('E')} · 中等 ${byDiff('M')} · 困难 ${byDiff('H')}</div></div>
@@ -578,7 +591,7 @@
       </div>
 
       ${due.length ? `<div class="card" style="margin-top:16px"><h3 class="with-ico">${icon('flame')}今日待复习</h3>
-        <div class="due-list">${due.map(({ p, st }) => `<a class="due-chip" href="#/algo/${p.slug}">${p.no}. ${esc(p.title)} <span class="muted small">${st.label}</span></a>`).join('')}</div></div>` : ''}
+        <div class="due-list">${due.map(({ p, st }) => `<a class="due-chip" href="#/algo/${p.slug}">${esc(plabel(p))} <span class="muted small">${st.label}</span></a>`).join('')}</div></div>` : ''}
 
       <div class="filters" style="margin-top:18px">
         <input type="search" id="aq" placeholder="搜索题号或标题…" style="min-width:220px">
@@ -588,7 +601,7 @@
       </div>
 
       <div id="algo-list">
-        ${ALGO.categories.map(c => {
+        ${set.categories.map(c => {
           const rows = all.filter(x => x.p.cat === c.id);
           const done = rows.filter(x => x.st.solved).length;
           return `<section class="card algo-cat" style="margin-bottom:14px">
@@ -596,11 +609,11 @@
             <div style="margin:8px 0 6px">${bar(pct(done, rows.length))}</div>
             <table class="data algo-table"><tbody>
               ${rows.map(({ p, st }) => `<tr data-slug="${p.slug}" data-diff="${p.diff}" data-state="${st.state}" data-q="${esc((p.no + ' ' + p.title + ' ' + p.slug).toLowerCase())}">
-                <td class="num muted" style="width:52px">${p.no}</td>
+                <td class="num muted" style="width:52px">${p.no ?? '—'}</td>
                 <td><a href="#/algo/${p.slug}">${esc(p.title)}</a></td>
                 <td style="width:64px">${diffBadge(p.diff)}</td>
                 <td style="width:150px">${statusChip(st)}</td>
-                <td style="width:56px"><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" class="small">力扣 ↗</a></td>
+                <td style="width:56px">${p.url ? `<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer" class="small">力扣 ↗</a>` : '<span class="muted small">手写</span>'}</td>
               </tr>`).join('')}
             </tbody></table>
           </section>`;
@@ -630,12 +643,13 @@
     const p = problemBySlug[slug];
     if (!p) return '<h1>找不到这道题</h1><p><a href="#/algo">返回题单</a></p>';
     const st = algoStatus(slug);
-    const idx = ALGO.problems.indexOf(p);
-    const prev = ALGO.problems[idx - 1], next = ALGO.problems[idx + 1];
-    const cat = ALGO.categories.find(c => c.id === p.cat);
+    const inSet = ALGO.problems.filter(x => x.set === p.set);
+    const idx = inSet.indexOf(p);
+    const prev = inSet[idx - 1], next = inSet[idx + 1];
+    const cat = catOf(p);
     setTimeout(() => {
       mountSolution(p);
-      mountNoteEditor(`# ${p.no}. ${p.title}\n\n## 我的第一反应\n\n\n## 卡在哪里\n\n\n## 关键点\n\n`);
+      mountNoteEditor(`# ${plabel(p)}\n\n## 我的第一反应\n\n\n## 卡在哪里\n\n\n## 关键点\n\n`);
       document.querySelectorAll('[data-attempt]').forEach(b => b.addEventListener('click', async () => {
         try {
           await api('/algo', 'POST', { slug, result: b.dataset.attempt });
@@ -652,11 +666,12 @@
       }));
     });
     return `
-      <div class="crumbs"><a href="#/algo">刷题</a> · ${esc(cat.title)}</div>
-      <div class="row"><h1>${p.no}. ${esc(p.title)}</h1>${diffBadge(p.diff)}<span class="spacer"></span>${statusChip(st)}</div>
+      <div class="crumbs"><a href="#/algo">刷题</a> · ${esc(setById[p.set].title)} · ${esc(cat.title)}</div>
+      <div class="row"><h1>${esc(plabel(p))}</h1>${diffBadge(p.diff)}<span class="spacer"></span>${statusChip(st)}</div>
 
       <div class="card row algo-actions" style="margin-top:14px">
-        <a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">去力扣做题 ↗</a>
+        ${p.url ? `<a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">去力扣做题 ↗</a>`
+          : '<span class="small muted">手写题：先在 IDE 里自己写一遍并跑通，再展开对照题解</span>'}
         <span class="spacer"></span>
         <span class="muted small">做完记录一下：</span>
         <button class="primary" data-attempt="ac">✅ 做出来了</button>
@@ -671,8 +686,8 @@
       <div style="margin-top:16px">${noteEditor(`algo-${p.slug}`, '记录你的解题过程…')}</div>
 
       <div class="pager">
-        <span>${prev ? `← <a href="#/algo/${prev.slug}">${prev.no}. ${esc(prev.title)}</a>` : ''}</span>
-        <span>${next ? `<a href="#/algo/${next.slug}">${next.no}. ${esc(next.title)}</a> →` : ''}</span>
+        <span>${prev ? `← <a href="#/algo/${prev.slug}">${esc(plabel(prev))}</a>` : ''}</span>
+        <span>${next ? `<a href="#/algo/${next.slug}">${esc(plabel(next))}</a> →` : ''}</span>
       </div>`;
   }
 
@@ -724,7 +739,7 @@
   function noteTitle(id) {
     if (topicById[id]) return topicById[id].title;
     const algoP = id.startsWith('algo-') && problemBySlug[id.slice(5)];
-    if (algoP) return `刷题：${algoP.no}. ${algoP.title}`;
+    if (algoP) return `刷题：${plabel(algoP)}`;
     const p = C.projects.find(x => `project-${x.id}` === id);
     if (p) return p.title;
     const cp = C.checkpoints.find(x => x.note === id);

@@ -2,36 +2,87 @@
  * 刷题题单。题解在 algo/<slug>.md（自己转述的题意 + 原创思路与 Java 题解），判题请去力扣官网。
  * 做题记录保存在 study/algo.tsv。
  */
+const HOT100_CATEGORIES = [
+  { id: 'hash', title: '哈希' },
+  { id: 'two-pointers', title: '双指针' },
+  { id: 'sliding-window', title: '滑动窗口' },
+  { id: 'substring', title: '子串' },
+  { id: 'array', title: '普通数组' },
+  { id: 'matrix', title: '矩阵' },
+  { id: 'linked-list', title: '链表' },
+  { id: 'tree', title: '二叉树' },
+  { id: 'graph', title: '图论' },
+  { id: 'backtracking', title: '回溯' },
+  { id: 'binary-search', title: '二分查找' },
+  { id: 'stack', title: '栈' },
+  { id: 'heap', title: '堆' },
+  { id: 'greedy', title: '贪心' },
+  { id: 'dp', title: '动态规划' },
+  { id: 'dp-2d', title: '多维动态规划' },
+  { id: 'tricks', title: '技巧' },
+];
+
+const EXTRA_CATEGORIES = [
+  { id: 'concurrency', title: '并发手写' },
+  { id: 'design', title: '手写组件' },
+  { id: 'algo-gap', title: '补充算法' },
+  { id: 'massive-data', title: '海量数据场景' },
+  { id: 'acm', title: 'ACM 模式' },
+];
+
+// [力扣题号（没有则 null）, slug, 标题, 难度 E/M/H, 分类]
+const EXTRA = [
+  [1114, 'print-in-order', '按序打印', 'E', 'concurrency'],
+  [1115, 'print-foobar-alternately', '交替打印 FooBar', 'M', 'concurrency'],
+  [1116, 'print-zero-even-odd', '打印零与奇偶数', 'M', 'concurrency'],
+  [1195, 'fizz-buzz-multithreaded', '交替打印字符串', 'M', 'concurrency'],
+  [1117, 'building-h2o', 'H2O 生成', 'M', 'concurrency'],
+  [1226, 'the-dining-philosophers', '哲学家进餐', 'M', 'concurrency'],
+  [null, 'three-threads-print-abc', '三个线程轮流打印 ABC', 'M', 'concurrency'],
+  [null, 'producer-consumer', '生产者-消费者', 'M', 'concurrency'],
+  [null, 'bounded-blocking-queue', '手写有界阻塞队列', 'M', 'concurrency'],
+  [null, 'thread-safe-singleton', '线程安全的单例', 'E', 'concurrency'],
+  [null, 'parallel-calls-aggregate', '并行调用多个服务并汇总结果', 'M', 'concurrency'],
+
+  [460, 'lfu-cache', 'LFU 缓存', 'H', 'design'],
+  [null, 'rate-limiter', '手写限流器（固定窗口 / 滑动窗口 / 令牌桶）', 'M', 'design'],
+  [null, 'simple-thread-pool', '手写简易线程池', 'H', 'design'],
+  [null, 'consistent-hashing', '一致性哈希（带虚拟节点）', 'M', 'design'],
+  [null, 'timing-wheel', '时间轮定时器', 'H', 'design'],
+  [null, 'snowflake-id', '雪花算法 ID 生成器', 'M', 'design'],
+  [null, 'sensitive-word-filter', '敏感词过滤（Trie）', 'M', 'design'],
+
+  [547, 'number-of-provinces', '省份数量（并查集）', 'M', 'algo-gap'],
+  [684, 'redundant-connection', '冗余连接（并查集）', 'M', 'algo-gap'],
+  [743, 'network-delay-time', '网络延迟时间（Dijkstra）', 'M', 'algo-gap'],
+  [28, 'find-the-index-of-the-first-occurrence-in-a-string', '找出字符串中第一个匹配项的下标（KMP）', 'E', 'algo-gap'],
+  [516, 'longest-palindromic-subsequence', '最长回文子序列（区间 DP）', 'M', 'algo-gap'],
+  [912, 'sort-an-array', '排序数组（手写快排 / 归并 / 堆排）', 'M', 'algo-gap'],
+  [151, 'reverse-words-in-a-string', '反转字符串中的单词', 'M', 'algo-gap'],
+  [8, 'string-to-integer-atoi', '字符串转换整数 (atoi)', 'M', 'algo-gap'],
+  [415, 'add-strings', '字符串相加', 'E', 'algo-gap'],
+
+  [null, 'massive-top-k', '10 亿个数中找最大的 K 个', 'M', 'massive-data'],
+  [null, 'external-sort', '内存放不下的大文件排序', 'M', 'massive-data'],
+  [null, 'bitmap-bloom-filter', '海量数据去重与存在判断（BitMap / 布隆过滤器）', 'M', 'massive-data'],
+  [null, 'most-frequent-ip', '超大日志中出现次数最多的 IP', 'M', 'massive-data'],
+
+  [null, 'acm-io-template', 'ACM 模式输入输出模板', 'E', 'acm'],
+];
+
 window.ALGO = {
   sets: [
-    { id: 'hot100', title: 'LeetCode 热题 100', desc: '力扣官方高频题单，覆盖面试最常考的 17 类题型。国内面试“刷题”首选。' },
+    { id: 'hot100', title: 'LeetCode 热题 100', categories: HOT100_CATEGORIES,
+      desc: '力扣官方高频题单，覆盖面试最常考的 17 类题型。国内面试“刷题”首选。' },
+    { id: 'java-extra', title: 'Java 面试补充', categories: EXTRA_CATEGORIES,
+      desc: '热题 100 没覆盖、但 Java 后端面试常考的：并发手写、手写组件、补充算法、海量数据场景题和 ACM 模式。没有题号的是面试常见手写题，没有官方判题，用题解里的 main 自测。' },
   ],
 
   // 复习间隔（天）：连续第 n 次做出来后，隔 REVIEW[n-1] 天再复习；全部通过视为“已掌握”
   review: [1, 3, 7, 14, 30, 60],
 
-  categories: [
-    { id: 'hash', title: '哈希' },
-    { id: 'two-pointers', title: '双指针' },
-    { id: 'sliding-window', title: '滑动窗口' },
-    { id: 'substring', title: '子串' },
-    { id: 'array', title: '普通数组' },
-    { id: 'matrix', title: '矩阵' },
-    { id: 'linked-list', title: '链表' },
-    { id: 'tree', title: '二叉树' },
-    { id: 'graph', title: '图论' },
-    { id: 'backtracking', title: '回溯' },
-    { id: 'binary-search', title: '二分查找' },
-    { id: 'stack', title: '栈' },
-    { id: 'heap', title: '堆' },
-    { id: 'greedy', title: '贪心' },
-    { id: 'dp', title: '动态规划' },
-    { id: 'dp-2d', title: '多维动态规划' },
-    { id: 'tricks', title: '技巧' },
-  ],
-
   // [题号, slug, 标题, 难度 E/M/H, 分类]
-  problems: [
+  problems: [...[
     [1, 'two-sum', '两数之和', 'E', 'hash'],
     [49, 'group-anagrams', '字母异位词分组', 'M', 'hash'],
     [128, 'longest-consecutive-sequence', '最长连续序列', 'M', 'hash'],
@@ -148,5 +199,8 @@ window.ALGO = {
     [75, 'sort-colors', '颜色分类', 'M', 'tricks'],
     [31, 'next-permutation', '下一个排列', 'M', 'tricks'],
     [287, 'find-the-duplicate-number', '寻找重复数', 'M', 'tricks'],
-  ].map(([no, slug, title, diff, cat]) => ({ no, slug, title, diff, cat, set: 'hot100', url: `https://leetcode.cn/problems/${slug}/` })),
+  ].map(p => [...p, 'hot100']), ...EXTRA.map(p => [...p, 'java-extra'])]
+    .map(([no, slug, title, diff, cat, set]) => ({
+      no, slug, title, diff, cat, set, url: no ? `https://leetcode.cn/problems/${slug}/` : null,
+    })),
 };

@@ -28,7 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AlgoSolutionsTests {
 
     private static final Path STATIC = Path.of("src/main/resources/static");
-    private static final Pattern PROBLEM = Pattern.compile("\\[\\d+, '([a-z0-9-]+)', '");
+    // entries look like [1, 'two-sum', ...] or, for hand-written questions without a LeetCode number, [null, 'rate-limiter', ...]
+    private static final Pattern PROBLEM = Pattern.compile("\\[(?:\\d+|null), '([a-z0-9-]+)', '");
+    private static final Pattern PUBLIC_CLASS = Pattern.compile("(?m)^public\\s+(?:final\\s+)?class\\s+(\\w+)");
     private static final Pattern JAVA_BLOCK = Pattern.compile("(?m)^```java\\s*\\n(.*?)^```", Pattern.DOTALL);
 
     private static final String STUBS = """
@@ -55,7 +57,7 @@ class AlgoSolutionsTests {
         while (m.find()) {
             slugs.add(m.group(1));
         }
-        assertThat(slugs).hasSize(100);
+        assertThat(slugs).hasSizeGreaterThanOrEqualTo(132);
 
         JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
         List<String> problems = new ArrayList<>();
@@ -93,7 +95,10 @@ class AlgoSolutionsTests {
     private static String compile(JavaCompiler javac, Path out, String code) throws IOException {
         Files.createDirectories(out);
         // imports must come first, so the stubs go into their own compilation unit
-        List<JavaFileObject> units = List.of(source("Stubs", STUBS), source("Solution", code));
+        // a public top-level class (e.g. ACM-style Main) must live in a unit of the same name
+        Matcher publicClass = PUBLIC_CLASS.matcher(code);
+        String unit = publicClass.find() ? publicClass.group(1) : "Solution";
+        List<JavaFileObject> units = List.of(source("Stubs", STUBS), source(unit, code));
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         try (StandardJavaFileManager files = javac.getStandardFileManager(diagnostics, null, StandardCharsets.UTF_8)) {
             boolean ok = javac.getTask(null, files, diagnostics,
