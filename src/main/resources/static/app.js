@@ -116,12 +116,16 @@
     const codes = [];
     s = esc(s).replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
     s = s
+      .replace(/\[\[progress:(\d{1,3})\]\]/g, (_, n) => { const v = Math.min(100, +n); return `<span class="md-progress"><span class="bar"><span style="width:${v}%"></span></span><span class="small muted">${v}%</span></span>`; })
       .replace(/\[\[algo:([a-z0-9-]+)\]\]/g, (_, slug) => `<a href="#/algo/${slug}">${esc(problemBySlug[slug] ? plabel(problemBySlug[slug]) : slug)}</a>`)
       .replace(/\[\[([a-z0-9-]+)\]\]/g, (_, id) => `<a href="#/topic/${id}">${esc(topicById[id]?.title || id)}</a>`)
       .replace(/\[([^\]]+)\]\(((?:https?:\/\/|#|\/)[^)\s]*)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
-      .replace(/~~([^~]+)~~/g, '<del>$1</del>');
+      .replace(/~~([^~]+)~~/g, '<del>$1</del>')
+      .replace(/==([^=]+)==/g, '<mark>$1</mark>')
+      // pills, same colours as the 刷题 difficulty badges: {{x}} purple, {{+x}} lime, {{!x}} pink, {{~x}} grey
+      .replace(/\{\{([+!~]?)([^{}]+)\}\}/g, (_, k, t) => `<span class="pill pill-${{ '+': 'lime', '!': 'pink', '~': 'gray' }[k] || 'purple'}">${t}</span>`);
     return s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[i]}</code>`);
   }
 
@@ -142,7 +146,7 @@
         while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
         i++;
         out.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`);
-      } else if ((m = /^:::(tip|warn|details)\s*(.*)$/.exec(line))) {
+      } else if ((m = /^:::(tip|warn|note|details|card|fold)\s*(.*)$/.exec(line))) {
         const buf = [];
         i++;
         while (i < lines.length && lines[i].trim() !== ':::') buf.push(lines[i++]);
@@ -151,7 +155,11 @@
         const body = markdown(buf.join('\n'));
         out.push(m[1] === 'details'
           ? `<details class="qa"><summary>${title}</summary><div class="qa-body">${body}</div></details>`
-          : `<div class="callout ${m[1]}">${title ? `<div class="callout-title">${title}</div>` : ''}${body}</div>`);
+          : m[1] === 'fold'
+            ? `<details class="md-fold"><summary><span>${title}</span><span class="muted small">点击展开</span></summary><div class="md-fold-body">${body}</div></details>`
+            : m[1] === 'card'
+              ? `<section class="md-card">${title ? `<div class="md-card-head">${title}</div>` : ''}${body}</section>`
+              : `<div class="callout ${m[1]}">${title ? `<div class="callout-title">${title}</div>` : ''}${body}</div>`);
       } else if ((m = /^(#{1,6})\s+(.*)$/.exec(line))) {
         const level = m[1].length;
         out.push(`<h${level}${level === 2 ? ` id="sec-${++h2}"` : ''}>${inline(m[2])}</h${level}>`);
@@ -179,7 +187,7 @@
         const tasks = items.every(it => /^\[[ xX]\]\s/.test(it));
         const lis = items.map(it => {
           const t = /^\[([ xX])\]\s(.*)$/.exec(it);
-          return t ? `<li>${t[1] === ' ' ? '☐' : '☑'} ${inline(t[2])}</li>` : `<li>${inline(it)}</li>`;
+          return t ? `<li class="task ${t[1] === ' ' ? '' : 'checked'}"><span class="box">${t[1] === ' ' ? '' : '✓'}</span>${inline(t[2])}</li>` : `<li>${inline(it)}</li>`;
         }).join('');
         const tag = ordered ? 'ol' : 'ul';
         out.push(`<${tag}${tasks ? ' class="tasks"' : ''}>${lis}</${tag}>`);
@@ -269,16 +277,20 @@
         <span class="spacer"></span>
         <span class="save-state" id="save-state"></span>
         <button data-mode="edit">编辑</button><button data-mode="split" class="on">分栏</button><button data-mode="preview">预览</button>
+        <button class="link" data-note-del title="删除这篇笔记">🗑</button>
       </div>
       <div class="editor split" id="editor">
         <textarea id="note-text" placeholder="${esc(placeholder)}" spellcheck="false"></textarea>
         <div class="preview md" id="note-preview"></div>
       </div>
-      <p class="muted small">支持 Markdown；<code>[[topic-id]]</code> 可链接到其他主题。自动保存。</p>
+      <p class="muted small">支持 Markdown，自动保存。扩展写法：<code>==高亮==</code>
+        · 提示框 <code>:::tip 标题</code> / <code>:::warn</code> / <code>:::note</code> … <code>:::</code>
+        · 折叠 <code>:::details 问题</code> … <code>:::</code>
+        · 链接主题 <code>[[net-tcp]]</code> / 题目 <code>[[algo:two-sum]]</code></p>
     </div>`;
   }
 
-  async function mountNoteEditor(template) {
+  async function mountNoteEditor(template, { saveNow = false, onDelete, onSaved, mode } = {}) {
     const card = document.getElementById('note-card');
     if (!card) return;
     const id = card.dataset.note;
@@ -291,7 +303,7 @@
     saveState.textContent = note ? `上次保存 ${new Date(note.updatedAt).toLocaleString()}` : '尚未保存';
 
     let timer;
-    let dirty = false; // the template alone is not worth a file; save only once the user types
+    let dirty = false; // a template alone isn't worth a file, unless the user explicitly created the note
     const save = async () => {
       clearTimeout(timer);
       if (!dirty) return;
@@ -299,6 +311,7 @@
       try {
         await api(`/notes/${id}`, 'PUT', { content: text.value });
         saveState.textContent = `已保存 ${new Date().toLocaleTimeString()}`;
+        onSaved?.();
       } catch (e) {
         dirty = true;
         saveState.textContent = '保存失败：' + e.message;
@@ -315,11 +328,380 @@
     text.addEventListener('keydown', e => {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); save(); }
     });
+    card.querySelector('[data-note-del]').addEventListener('click', async () => {
+      clearTimeout(timer);
+      dirty = false;
+      if (!await deleteNote(id)) return;
+      if (onDelete) { leaveHooks = []; onDelete(); return; }
+      text.value = template || ''; // back to a fresh, unsaved template
+      preview.innerHTML = markdown(text.value);
+      saveState.textContent = '已删除，重新输入会新建';
+    });
     card.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
       card.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
       document.getElementById('editor').className = 'editor ' + b.dataset.mode;
+      document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('on', (p.dataset.panel === 'view') === (b.dataset.mode === 'preview')));
+      if (b.dataset.mode === 'edit') {
+        const ta = document.getElementById('note-text');
+        ta.focus({ preventScroll: true });
+        ta.setSelectionRange(0, 0); // start at the top, not wherever the caret landed
+        ta.scrollTop = 0;
+      }
     }));
+    if (mode) card.querySelector(`[data-mode="${mode}"]`)?.click();
     leaveHooks.push(save);
+    if (!note && saveNow) {
+      dirty = true;
+      save().then(async () => { state.notes = await api('/notes') || state.notes; });
+    }
+  }
+
+  // ---------------------------------------------------------------- note templates (for new notes on the 笔记 page)
+
+  function isoWeek(date = new Date()) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    const year = d.getUTCFullYear();
+    return { year, week: Math.ceil(((d - Date.UTC(year, 0, 1)) / 86400000 + 1) / 7) };
+  }
+
+  const F = '```'; // a code fence can't be written literally inside a template literal
+  // Templates follow the 刷题 pages: pill tags up top, a 关键点 box, cards, 易错点, 举一反三,
+  // the "answer" part folded until you want it, and a closing 一句话记忆.
+  const NOTE_TEMPLATES = {
+    study: { label: '📘 学习笔记', body: t => `# 📘 ${t.title}
+
+{{📅 ${t.date}}} {{~📚 讲义 / 课程 / 文章}} {{+⭐ 掌握 0/5}} {{🔗 [[主题id]]}}
+
+## 题意：要搞懂什么
+
+（用 2–3 句话写清楚：这次要学会的是什么、学完能回答什么问题）
+
+:::tip 关键点
+（学完后回来补：==一句话讲清它是什么、解决什么问题==）
+:::
+
+## 思路：核心概念
+
+:::card ① 概念一 {{~待补充}}
+- **是什么**：
+- **为什么这样设计**：
+- **例子**：
+:::
+
+:::card ② 概念二 {{~待补充}}
+- **是什么**：
+- **为什么这样设计**：
+- **例子**：
+:::
+
+:::note 💡 类比
+（用熟悉的东西类比，例如“Session 就像寄存柜的号码牌”）
+:::
+
+## 推演：原理 / 流程
+
+${F}
+Client ──▶ Server ──▶ DB        （英文画图，中文注释写在行尾）
+${F}
+
+## 动手实践
+
+[[progress:0]]
+
+- [ ] 实验 / 命令 1：
+- [ ] 实验 / 命令 2：
+
+${F}
+$ 执行的命令
+关键输出
+${F}
+
+## 攻防
+
+| 视角 | 要点 | 在 Java / Spring 里 |
+|---|---|---|
+| {{!🗡 攻击}} | 怎么利用、前提条件、危害 |  |
+| {{+🛡 防御}} | 代码 / 配置 / 检测 |  |
+
+## 易错点
+
+- 
+- 
+
+## 举一反三
+
+- 相关主题：[[主题id]]
+- 相关题目：[[algo:题目slug]]
+
+:::fold ✅ 复习自测（先自己回答，再展开对照）
+**Q1：** 
+
+**A1：** 
+
+**Q2：** 
+
+**A2：** 
+:::
+
+## 一句话记忆
+
+> （用一句话概括这次学到的套路，方便以后复习）
+` },
+
+    lab: { label: '🧪 实验记录', body: t => `# 🧪 实验：${t.title}
+
+{{📅 ${t.date}}} {{~🧰 JDK 17 / Spring Boot / 本机}} {{🎯 [[主题id]]}} {{~📊 结果：待填}}
+
+:::warn ⚠️ 授权声明
+只在自己的环境或已授权的目标上做攻击实验。
+:::
+
+## 题意：实验目标
+
+（这次要验证什么？预期结果是什么？）
+
+## 环境准备
+
+- [ ] 
+- [ ] 
+
+## 复现 {{!漏洞版}}
+
+${F}
+# 请求 / 命令
+curl -v ...
+${F}
+
+${F}
+# 响应 / 关键输出
+${F}
+
+:::tip 关键点：为什么能打穿
+（根因：==哪一行代码 / 哪个配置==出了问题）
+:::
+
+## 修复 {{+修复版}}
+
+${F}java
+// 修复后的关键代码
+${F}
+
+## 验证
+
+| 用例 | 漏洞版 | 修复版 |
+|---|---|---|
+| 正常请求 | {{~待测}} | {{~待测}} |
+| 攻击请求 | {{~待测}} | {{~待测}} |
+| 绕过尝试 | {{~待测}} | {{~待测}} |
+
+## 易错点
+
+- 
+
+:::fold 🔍 追问：还能怎么绕过？（先自己想，再展开）
+- 
+:::
+
+## 一句话记忆
+
+> （用一句话概括这次学到的套路，方便以后复习）
+` },
+
+    debug: { label: '🐞 问题排查', body: t => `# 🐞 排查：${t.title}
+
+{{📅 ${t.date}}} {{~🌐 开发 / 测试 / 生产}} {{!🚨 严重程度：高 / 中 / 低}} {{~⏱ 耗时：}} {{~📊 排查中}}
+
+## 题意：现象
+
+> （报错信息、影响范围、什么时候开始的）
+
+${F}
+错误日志 / 堆栈
+${F}
+
+## 思路：排查过程
+
+| 步骤 | 做了什么 | 看到了什么 | 结论 |
+|---|---|---|---|
+| 1 |  |  | {{~待定}} |
+| 2 |  |  | {{~待定}} |
+
+:::note 🧠 当时的假设
+- 假设 A：
+- 假设 B：
+:::
+
+:::tip 关键点：根因
+（不是“重启就好了”，而是==为什么会发生==）
+:::
+
+## 解决
+
+${F}
+修复代码 / 配置 / 命令
+${F}
+
+## 易错点：如何避免再次发生
+
+- [ ] 监控 / 告警：
+- [ ] 测试用例：
+- [ ] 文档 / 规范：
+
+## 举一反三
+
+- 类似问题：
+- 相关主题：[[主题id]]
+
+## 一句话记忆
+
+> （下次遇到类似问题，第一步先看什么）
+` },
+
+    weekly: { label: '🗓 周复盘', id: () => { const w = isoWeek(); return `weekly-${w.year}-${String(w.week).padStart(2, '0')}`; },
+      body: t => `# 🗓 周复盘 · ${t.weekLabel}
+
+{{📅 ${t.date}}} {{~⏱ __ 小时}} {{~📘 讲义 __ 篇}} {{~🧩 刷题 __ 道}} {{~🧪 实验 __ 个}}
+
+## 本周进度
+
+:::card 📘 学习路线
+[[progress:0]]
+
+- [ ] 
+- [ ] 
+:::
+
+:::card 🧩 刷题
+[[progress:0]]
+
+| 题目 | 结果 | 卡在哪里 |
+|---|---|---|
+| [[algo:题目slug]] | {{+✅ 做出来}} / {{!😵 没做出}} |  |
+:::
+
+:::tip 关键点：本周最大的收获
+（只写一件，写清楚==为什么重要==）
+:::
+
+## 复盘
+
+| | 内容 |
+|---|---|
+| {{+👍 做得好}} |  |
+| {{!👎 没做到}} |  |
+| {{~🔋 状态}} | 专注 _/5 · 精力 _/5 · 心情 _/5 · 工作压力 _/5 |
+
+## 下周计划（不超过 3 件）
+
+- [ ] 
+- [ ] 
+- [ ] 
+
+:::fold 🧭 对照原则（每周过一遍）
+- 有没有同时学太多东西？
+- 学的东西有没有落到项目 / 实验里？
+- 离下一个节点还有多久，进度够吗？
+:::
+
+## 一句话记忆
+
+> （用一句话总结这一周）
+` },
+
+    interview: { label: '💼 面试题整理', body: t => `# 💼 面试题：${t.title}
+
+{{📅 ${t.date}}} {{~🏢 公司}} {{~👤 岗位}} {{~🔁 一面 / 二面}} {{中等}} {{~⭐ 当时表现 _/5}}
+
+## 题意
+
+> （面试官原话，尽量还原）
+
+**考察点**：{{~待补充}} {{~待补充}}
+
+:::tip 关键点：30 秒版回答
+（先给结论，==一句话抓住核心==）
+:::
+
+:::fold 🗣 完整回答（2–3 分钟，先自己说一遍再展开）
+1. **是什么**：
+2. **为什么 / 原理**：
+3. **项目里怎么用**（STAR：情境 → 任务 → 行动 → 结果）：
+4. **常见坑与优化**：
+:::
+
+:::note 📂 我的项目例子
+（汽车 / IoT / 电商里真实遇到过的场景）
+:::
+
+## 追问
+
+:::details 追问 1：
+回答：
+:::
+
+:::details 追问 2：
+回答：
+:::
+
+## 易错点
+
+- 
+
+## 举一反三
+
+- [[主题id]]
+- [[algo:题目slug]]
+
+## 一句话记忆
+
+> （用一句话概括这次学到的套路，方便以后复习）
+` },
+
+    reading: { label: '📖 读书 / 文章笔记', body: t => `# 📖 ${t.title}
+
+{{📅 ${t.date}}} {{~✍️ 作者}} {{~🏷 书 / 文章 / 视频 / 文档}} {{+⭐ 评分 _/5}}
+
+## 题意：为什么读
+
+## 核心观点
+
+:::card ① 观点一
+:::
+
+:::card ② 观点二
+:::
+
+:::card ③ 观点三
+:::
+
+:::tip 关键点：如果只记住一句话
+:::
+
+## 原文摘录
+
+> 
+
+## 举一反三：能用到工作或项目里的
+
+- [ ] 
+
+:::fold 🤔 不同意 / 有疑问的地方
+- 
+:::
+
+## 一句话记忆
+
+> （用一句话概括这次学到的套路，方便以后复习）
+` },
+
+    blank: { label: '📄 空白', body: t => `# ${t.title}\n\n` },
+  };
+
+  function noteTemplate(kind, id) {
+    const w = isoWeek();
+    const t = { title: noteTitle(id), date: today(), weekLabel: `${w.year} 年第 ${w.week} 周` };
+    return (NOTE_TEMPLATES[kind] || NOTE_TEMPLATES.study).body(t);
   }
 
   // ---------------------------------------------------------------- views
@@ -408,7 +790,11 @@
 
       <h2>最近的笔记</h2>
       <div class="card">
-        ${state.notes.slice(0, 6).map(noteRow).join('') || '<p class="muted">还没有笔记。打开任意一个主题开始写吧。</p>'}
+        ${state.notes.slice(0, 6).map(n => `<a class="note-item" href="${noteHref(n.id)}">
+          <div class="row">${kindPill(n.id)}<strong>${esc(noteTitle(n.id))}</strong><span class="spacer"></span>
+          <span class="muted small">${new Date(n.updatedAt).toLocaleString()} · ${n.length} 字</span></div>
+          <div class="muted small md">${inline(cleanExcerpt(n.excerpt))}</div></a>`).join('') || '<p class="muted">还没有笔记。打开任意一个主题开始写吧。</p>'}
+        ${state.notes.length > 6 ? '<p class="small" style="margin:10px 0 0"><a href="#/notes">查看全部笔记 →</a></p>' : ''}
       </div>`;
   }
 
@@ -736,6 +1122,35 @@
       </table></div>`;
   }
 
+  // ---- note kinds: where a note belongs decides its title, link and whether it may be renamed ----
+
+  const NOTE_KINDS = {
+    free: { label: '自由笔记', pill: 'purple' },
+    topic: { label: '主题笔记', pill: 'lime' },
+    project: { label: '项目笔记', pill: 'purple' },
+    algo: { label: '刷题笔记', pill: 'purple' },
+    review: { label: '复盘', pill: 'pink' },
+  };
+
+  function noteKind(id) {
+    if (topicById[id]) return 'topic';
+    if (id.startsWith('algo-') && problemBySlug[id.slice(5)]) return 'algo';
+    if (C.projects.some(x => `project-${x.id}` === id)) return 'project';
+    if (C.checkpoints.some(x => x.note === id) || id.startsWith('weekly-')) return 'review';
+    return 'free';
+  }
+
+  function noteHref(id) {
+    const kind = noteKind(id);
+    if (kind === 'topic') return `#/topic/${id}`;
+    if (kind === 'algo') return `#/algo/${id.slice(5)}`;
+    if (kind === 'project') return `#/projects/${id.slice(8)}`;
+    return `#/notes/${id}`;
+  }
+
+  // topic / problem / project notes are tied to their id; only free-standing notes can be renamed
+  const renamable = id => ['free', 'review'].includes(noteKind(id)) && !C.checkpoints.some(x => x.note === id);
+
   function noteTitle(id) {
     if (topicById[id]) return topicById[id].title;
     const algoP = id.startsWith('algo-') && problemBySlug[id.slice(5)];
@@ -743,60 +1158,215 @@
     const p = C.projects.find(x => `project-${x.id}` === id);
     if (p) return p.title;
     const cp = C.checkpoints.find(x => x.note === id);
-    return cp ? cp.title : id;
+    if (cp) return cp.title;
+    return state.notes.find(n => n.id === id)?.title || id;
   }
 
-  function noteRow(n) {
-    return `<a class="note-item" href="#/note/${esc(n.id)}" data-q="${esc((n.id + ' ' + noteTitle(n.id) + ' ' + n.excerpt).toLowerCase())}">
-      <div class="row"><strong>${esc(noteTitle(n.id))}</strong><span class="spacer"></span>
-      <span class="muted small">${new Date(n.updatedAt).toLocaleString()} · ${n.length} 字</span></div>
-      <div class="muted small">${esc(n.excerpt)}</div>
-    </a>`;
+  const kindPill = id => { const k = NOTE_KINDS[noteKind(id)]; return `<span class="pill pill-${k.pill}">${k.label}</span>`; };
+
+  // server excerpts are cut at 80 chars; drop a pill that got cut in half
+  const cleanExcerpt = t => (t || '').replace(/\{\{[^}]*…$/, '…');
+
+  function highlight(text, q) {
+    const safe = esc(text);
+    if (!q) return safe;
+    const re = new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    return safe.replace(re, m => `<mark>${m}</mark>`);
   }
 
-  function viewNotes() {
+  async function renameNote(id) {
+    const newId = prompt(`把笔记「${noteTitle(id)}」的 id 改成：\n（只能用小写字母、数字和 -）`, id)?.trim().toLowerCase();
+    if (!newId || newId === id) return null;
+    if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(newId)) { toast('只能用小写字母、数字和 -'); return null; }
+    try {
+      await api(`/notes/${id}/rename`, 'POST', { newId });
+    } catch (e) {
+      toast(e.message.includes('409') ? '这个 id 已经被占用了' : '重命名失败：' + e.message);
+      return null;
+    }
+    state.notes = await api('/notes') || [];
+    toast('已重命名');
+    return newId;
+  }
+
+  async function deleteNote(id) {
+    if (!confirm(`删除笔记「${noteTitle(id)}」？\n（文件会从 study/notes 删除；提交过的话可以从 git 恢复）`)) return false;
+    await api(`/notes/${id}`, 'DELETE');
+    state.notes = await api('/notes') || [];
+    toast('已删除');
+    return true;
+  }
+
+  // ---- 笔记 page: list on the left (查) with 查看/编辑/重命名/删除 on every row, the selected note on the right ----
+
+  const noteUi = { q: '', kind: '', sort: 'updated', scroll: 0 };
+
+  function noteRow(n, q, selected) {
+    const body = n.snippet ? highlight(n.snippet, q) : n.excerpt ? inline(cleanExcerpt(n.excerpt)) : '（空笔记）';
+    const id = esc(n.id);
+    return `<div class="note-item ${selected ? 'selected' : ''}" data-id="${id}">
+      <a class="note-main" href="#/notes/${id}">
+        <div class="row">${kindPill(n.id)}<strong>${highlight(noteTitle(n.id), q)}</strong></div>
+        <div class="muted small note-snippet md">${body}</div>
+        <div class="muted small note-meta"><code>${highlight(n.id, q)}</code> · ${new Date(n.updatedAt).toLocaleString()} · ${n.length} 字</div>
+      </a>
+      <div class="note-actions">
+        <a href="#/notes/${id}">查看</a>
+        <button class="link" data-edit="${id}">编辑</button>
+        ${renamable(n.id) ? `<button class="link" data-rename="${id}">重命名</button>` : ''}
+        <button class="link danger" data-del="${id}">删除</button>
+      </div>
+    </div>`;
+  }
+
+  async function refreshNoteList(selected) {
+    const box = document.getElementById('note-list');
+    if (!box) return;
+    const q = noteUi.q;
+    let list = q ? await api(`/notes?q=${encodeURIComponent(q)}`) || [] : state.notes;
+    if (noteUi.kind) list = list.filter(n => noteKind(n.id) === noteUi.kind);
+    const by = {
+      updated: (a, b) => b.updatedAt.localeCompare(a.updatedAt),
+      title: (a, b) => noteTitle(a.id).localeCompare(noteTitle(b.id), 'zh'),
+      length: (a, b) => b.length - a.length,
+    }[noteUi.sort];
+    list = [...list].sort(by);
+    document.getElementById('ncount').textContent = q ? `找到 ${list.length} 篇` : `共 ${list.length} 篇`;
+    box.innerHTML = list.map(n => noteRow(n, q, n.id === selected)).join('')
+      || `<p class="muted" style="padding:12px 4px">${q ? '没有找到包含这个关键词的笔记。' : '还没有笔记，用上面的模板新建一篇吧。'}</p>`;
+    box.scrollTop = noteUi.scroll;
+  }
+
+  function notePanel(id) {
+    if (!id) {
+      return `<div class="card note-empty">
+        <p style="font-size:34px;margin:0">📝</p>
+        <p><strong>选一篇笔记查看或编辑</strong></p>
+        <p class="muted small">左边列表里每篇笔记都可以 查看 / 编辑 / 重命名 / 删除；<br>也可以在上方用模板新建一篇。</p>
+      </div>`;
+    }
+    const kind = noteKind(id);
+    const home = kind === 'free' || kind === 'review' ? '' : `<a class="small" href="${noteHref(id)}">打开所在页面 ↗</a>`;
+    return `
+      <div class="card note-head">
+        <div class="row">${kindPill(id)}<h2 style="margin:0;font-size:19px">${esc(noteTitle(id))}</h2></div>
+        <div class="muted small" style="margin-top:4px"><code>study/notes/${esc(id)}.md</code> · <span id="panel-save"></span></div>
+        <div class="row note-buttons" style="margin-top:12px">
+          <button data-panel="view">👁 查看</button>
+          <button data-panel="edit">✏️ 编辑</button>
+          ${renamable(id) ? '<button id="ren-note">🔤 重命名</button>' : ''}
+          <button class="danger" id="del-note">🗑 删除</button>
+          ${home}
+        </div>
+      </div>
+      <div style="margin-top:12px">${noteEditor(id, '')}</div>`;
+  }
+
+  function viewNotes(selected) {
+    const counts = Object.fromEntries(Object.keys(NOTE_KINDS).map(k => [k, state.notes.filter(n => noteKind(n.id) === k).length]));
     setTimeout(() => {
+      const list = document.getElementById('note-list');
+      let timer;
       document.getElementById('nq').addEventListener('input', e => {
-        const q = e.target.value.trim().toLowerCase();
-        document.querySelectorAll('#note-list .note-item').forEach(a => { a.hidden = q && !a.dataset.q.includes(q); });
+        clearTimeout(timer);
+        timer = setTimeout(() => { noteUi.q = e.target.value.trim(); noteUi.scroll = 0; refreshNoteList(selected); }, 250);
+      });
+      document.getElementById('nkind').addEventListener('change', e => { noteUi.kind = e.target.value; refreshNoteList(selected); });
+      document.getElementById('nsort').addEventListener('change', e => { noteUi.sort = e.target.value; refreshNoteList(selected); });
+      list.addEventListener('scroll', () => { noteUi.scroll = list.scrollTop; });
+      list.addEventListener('click', async e => {
+        const edit = e.target.closest('[data-edit]'), ren = e.target.closest('[data-rename]'), del = e.target.closest('[data-del]');
+        if (edit) {
+          sessionStorage.setItem('noteMode', 'edit');
+          if (edit.dataset.edit === selected) render(); else location.hash = `#/notes/${edit.dataset.edit}`;
+        }
+        if (ren) {
+          const newId = await renameNote(ren.dataset.rename);
+          if (newId && ren.dataset.rename === selected) location.hash = `#/notes/${newId}`;
+          else if (newId) refreshNoteList(selected);
+        }
+        if (del && await deleteNote(del.dataset.del)) {
+          if (del.dataset.del === selected) location.hash = '#/notes'; else refreshNoteList(selected);
+        }
       });
       document.getElementById('new-note').addEventListener('submit', e => {
         e.preventDefault();
         const id = document.getElementById('new-id').value.trim().toLowerCase();
         if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)) { toast('只能用小写字母、数字和 -'); return; }
-        location.hash = `#/note/${id}`;
+        if (state.notes.some(n => n.id === id)) toast('这个 id 已经有笔记了，直接打开');
+        else sessionStorage.setItem('noteTpl', document.getElementById('new-tpl').value);
+        sessionStorage.setItem('noteMode', 'edit');
+        location.hash = `#/notes/${id}`;
       });
+      document.getElementById('new-tpl').addEventListener('change', e => {
+        const tpl = NOTE_TEMPLATES[e.target.value];
+        const input = document.getElementById('new-id');
+        if (tpl.id && !input.value) input.value = tpl.id();
+      });
+      refreshNoteList(selected);
+      if (selected) mountNotePanel(selected);
     });
     return `
       <h1>笔记</h1>
-      <p class="muted">主题笔记在各主题页里写；这里可以新建自由笔记（周报、读书笔记、面试题…）。所有笔记都是 <code>study/notes/*.md</code>。</p>
-      <div class="filters" style="margin-top:14px">
-        <input type="search" id="nq" placeholder="搜索笔记…" style="min-width:240px">
-        <span class="spacer"></span>
-        <form id="new-note" class="row"><input type="text" id="new-id" placeholder="新笔记 id，如 weekly-2026-40" required><button class="primary">新建</button></form>
-      </div>
-      <div class="card" id="note-list">${state.notes.map(noteRow).join('') || '<p class="muted">还没有笔记。</p>'}</div>`;
+      <p class="muted">所有笔记都在这里 新建 / 查看 / 编辑 / 重命名 / 删除 / 搜索；文件保存在 <code>study/notes/*.md</code>。</p>
+
+      <form id="new-note" class="card row" style="margin-top:16px">
+        <strong>＋ 新建</strong>
+        <select id="new-tpl" aria-label="模板">${Object.entries(NOTE_TEMPLATES).map(([k, v]) => `<option value="${k}">${v.label}</option>`).join('')}</select>
+        <input type="text" id="new-id" placeholder="笔记 id，如 spring-security-filter" required style="flex:1;min-width:200px">
+        <button class="primary">新建并编辑</button>
+      </form>
+
+      <div class="notes-layout">
+        <section>
+          <div class="filters note-filters">
+            <input type="search" id="nq" placeholder="🔍 全文搜索：标题、id、正文" value="${esc(noteUi.q)}">
+            <select id="nkind"><option value="">全部类型</option>${Object.entries(NOTE_KINDS).map(([k, v]) =>
+              `<option value="${k}" ${noteUi.kind === k ? 'selected' : ''}>${v.label}（${counts[k]}）</option>`).join('')}</select>
+            <select id="nsort">${[['updated', '最近更新'], ['title', '按标题'], ['length', '按字数']].map(([k, v]) =>
+              `<option value="${k}" ${noteUi.sort === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+            <span class="muted small" id="ncount"></span>
+          </div>
+          <div class="card" id="note-list"><p class="muted">加载中…</p></div>
+        </section>
+        <section id="note-panel">${notePanel(selected)}</section>
+      </div>`;
   }
 
-  function viewNote(id) {
-    if (topicById[id]) { location.replace(`#/topic/${id}`); return ''; }
-    const p = C.projects.find(x => `project-${x.id}` === id);
-    if (p) { location.replace(`#/projects/${p.id}`); return ''; }
-    if (id.startsWith('algo-') && problemBySlug[id.slice(5)]) { location.replace(`#/algo/${id.slice(5)}`); return ''; }
-    setTimeout(() => {
-      mountNoteEditor(`# ${noteTitle(id)}\n\n`);
-      document.getElementById('del-note').addEventListener('click', async () => {
-        if (!confirm(`删除笔记 ${id}？（可以从 git 恢复）`)) return;
-        leaveHooks = [];
-        await api(`/notes/${id}`, 'DELETE');
-        toast('已删除');
-        location.hash = '#/notes';
-      });
+  function mountNotePanel(id) {
+    const chosen = sessionStorage.getItem('noteTpl'); // set only by 新建
+    const mode = sessionStorage.getItem('noteMode') || 'preview';
+    sessionStorage.removeItem('noteTpl');
+    sessionStorage.removeItem('noteMode');
+    const kind = noteKind(id);
+    const template = kind === 'free' || kind === 'review' ? noteTemplate(chosen || 'study', id) : '';
+    mountNoteEditor(template, {
+      saveNow: !!chosen,
+      mode,
+      onDelete: () => { location.hash = '#/notes'; },
+      onSaved: async () => { state.notes = await api('/notes') || state.notes; refreshNoteList(id); },
     });
-    return `
-      <div class="crumbs"><a href="#/notes">笔记</a></div>
-      <div class="row"><h1>${esc(noteTitle(id))}</h1><span class="spacer"></span><button class="link" id="del-note">删除</button></div>
-      <div style="margin-top:12px">${noteEditor(id, '')}</div>`;
+    const setMode = m => document.querySelector(`#note-card [data-mode="${m}"]`)?.click();
+    document.querySelector('[data-panel="view"]').addEventListener('click', () => setMode('preview'));
+    document.querySelector('[data-panel="edit"]').addEventListener('click', () => setMode('edit'));
+    // mirror the editor's save status into the panel header (the editor's own bar is hidden here)
+    const status = document.getElementById('save-state'), mirror = document.getElementById('panel-save');
+    const sync = () => { mirror.textContent = status.textContent; };
+    new MutationObserver(sync).observe(status, { childList: true, characterData: true, subtree: true });
+    sync();
+    document.getElementById('del-note').addEventListener('click', () => document.querySelector('#note-card [data-note-del]').click());
+    document.getElementById('ren-note')?.addEventListener('click', async () => {
+      for (const save of leaveHooks) await save(); // flush pending edits before the file moves
+      leaveHooks = [];
+      const newId = await renameNote(id);
+      if (newId) location.hash = `#/notes/${newId}`; else render();
+    });
+  }
+
+  // old #/note/<id> links (e.g. checkpoint 复盘 notes) now open inside the 笔记 page
+  function viewNote(id) {
+    location.replace(noteHref(id));
+    return '';
   }
 
   function viewJournal() {
@@ -911,7 +1481,7 @@
     const views = {
       dashboard: viewDashboard, roadmap: viewRoadmap, topic: viewTopic, projects: viewProjects,
       algo: slug => (slug ? viewAlgoProblem(slug) : viewAlgo()),
-      resources: viewResources, notes: viewNotes, note: viewNote, journal: viewJournal, principles: viewPrinciples,
+      resources: viewResources, notes: id => viewNotes(id), note: viewNote, journal: viewJournal, principles: viewPrinciples,
     };
     const navView = { topic: 'roadmap', note: 'notes' }[view] || view;
     document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('active', a.dataset.view === navView));

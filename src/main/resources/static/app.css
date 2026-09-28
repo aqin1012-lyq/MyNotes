@@ -264,3 +264,84 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .set-tabs { display: flex; gap: 8px; margin: 10px 0 4px; flex-wrap: wrap; }
 .set-tabs button { font-size: 14px; padding: 7px 14px; }
 .set-tabs button.on { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
+
+/* ---- richer markdown ---- */
+.md mark { background: color-mix(in srgb, var(--lime) 55%, transparent); color: inherit; padding: 0 3px; border-radius: 3px; }
+.md .callout.note { background: color-mix(in srgb, var(--accent-soft) 60%, var(--surface)); border-color: var(--accent); }
+.md hr { border: 0; height: 1px; margin: 22px 0; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .5; }
+.md ul.tasks li.task { display: flex; gap: 8px; align-items: baseline; }
+.md ul.tasks .box { flex-shrink: 0; width: 15px; height: 15px; border: 1.5px solid var(--accent); border-radius: 4px; font-size: 11px; line-height: 12px; text-align: center; color: var(--accent-ink); position: relative; top: 2px; }
+.md ul.tasks li.checked .box { background: var(--accent); }
+.md ul.tasks li.checked { color: var(--muted); text-decoration: line-through; }
+.md h2 { padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.md table th { background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface)); }
+/* templates are full of blanks to fill in: keep empty cells and to-dos visible */
+#note-preview table { min-width: 70%; }
+.md td { height: 2.2em; }
+.md ul.tasks li.task { min-height: 1.7em; }
+
+/* ---- 刷题-style building blocks for notes: pills, cards, folds, progress ---- */
+.md .pill { display: inline-block; font-size: 12.5px; line-height: 1.5; padding: 1px 10px; border-radius: 999px; margin: 2px 4px 2px 0; white-space: nowrap; color: var(--text); }
+.md .pill-purple { background: var(--accent-soft); }
+.md .pill-lime { background: color-mix(in srgb, var(--lime) 45%, var(--surface)); }
+.md .pill-pink { background: var(--pink-soft); border: 1px solid var(--pink); }
+.md .pill-gray { background: var(--track); color: var(--text-2); }
+.md .pill a { color: inherit; text-decoration: underline; }
+.md .md-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 18px 6px; margin: 12px 0; }
+.md .md-card-head { font-weight: 600; font-size: 15px; padding: 12px 0 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.md .md-fold { border: 1px solid var(--border); border-radius: var(--radius); margin: 14px 0; background: color-mix(in srgb, var(--accent-soft) 35%, var(--surface)); }
+.md .md-fold[open] { background: var(--surface); }
+.md .md-fold > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; font-weight: 600; }
+.md .md-fold > summary::-webkit-details-marker { display: none; }
+.md .md-fold[open] > summary .muted { visibility: hidden; }
+.md .md-fold-body { padding: 0 18px 8px; border-top: 1px dashed var(--border); }
+.md .md-progress { display: inline-flex; align-items: center; gap: 8px; width: min(320px, 100%); vertical-align: middle; }
+.md .md-progress .bar { flex: 1; }
+/* note tables read like the 刷题 list: row separators instead of a grid */
+#note-preview table { border-collapse: collapse; }
+#note-preview th, #note-preview td { border: 0; border-bottom: 1px solid var(--border); padding: 7px 10px; }
+#note-preview th { background: none; color: var(--text-2); font-size: 13px; }
+
+/* ---- notes list ---- */
+.pill { display: inline-block; font-size: 12px; line-height: 1.5; padding: 1px 9px; border-radius: 999px; white-space: nowrap; color: var(--text); }
+.pill-purple { background: var(--accent-soft); }
+.pill-lime { background: color-mix(in srgb, var(--lime) 45%, var(--surface)); }
+.pill-pink { background: var(--pink-soft); border: 1px solid var(--pink); }
+.pill-gray { background: var(--track); color: var(--text-2); }
+#note-list .note-item { display: block; padding: 11px 0; border-bottom: 1px solid var(--border); }
+#note-list .note-item:last-child { border-bottom: 0; }
+#note-list .note-item .row { gap: 8px; }
+.note-snippet { margin-top: 3px; }
+.note-snippet mark, #note-list mark { background: color-mix(in srgb, var(--lime) 55%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+.row-actions { display: inline-flex; gap: 2px; opacity: .45; }
+.note-item:hover .row-actions { opacity: 1; }
+.editor-bar [data-note-del] { font-size: 14px; }
+
+/* ---- 笔记 page: list | panel ---- */
+.notes-layout { display: grid; grid-template-columns: minmax(300px, 38%) 1fr; gap: 16px; align-items: start; margin-top: 16px; }
+.note-filters { margin-bottom: 10px; }
+.note-filters #nq { flex: 1 1 100%; }
+.note-filters #ncount { align-self: center; }
+#note-list { padding: 4px 12px; max-height: calc(100vh - 290px); overflow-y: auto; }
+#note-list .note-item { padding: 10px 8px; border-radius: 8px; border-bottom: 1px solid var(--border); }
+#note-list .note-item.selected { background: var(--accent-soft); border-bottom-color: transparent; }
+#note-list .note-main { display: block; color: var(--text); text-decoration: none; }
+#note-list .note-main strong { font-size: 14.5px; }
+#note-list .note-meta { margin-top: 3px; font-size: 12px; }
+#note-list .note-meta code { font-size: 11.5px; }
+.note-actions { display: flex; gap: 2px; margin-top: 6px; font-size: 13px; }
+.note-actions a, .note-actions button { font-size: 13px; padding: 1px 8px; border-radius: 6px; color: var(--accent); }
+.note-actions a:hover, .note-actions button:hover { background: var(--accent-soft); text-decoration: none; }
+.note-actions .danger, button.danger { color: var(--pink); }
+button.danger:hover { border-color: var(--pink); }
+.note-head button.on { background: var(--accent-soft); border-color: var(--accent); }
+.note-empty { text-align: center; padding: 48px 20px; }
+#note-panel .editor textarea, #note-panel .preview { min-height: 460px; }
+@media (max-width: 1000px) { .notes-layout { grid-template-columns: 1fr; } #note-list { max-height: none; } }
+
+/* inside the 笔记 page the panel header owns the controls, so the editor's own bar goes away */
+#note-panel #note-card { padding-top: 14px; }
+#note-panel .editor-bar { display: none; }
+#note-panel .editor textarea, #note-panel .preview { min-height: 520px; }
+.note-buttons { gap: 8px; }
+.note-buttons button { font-size: 13.5px; padding: 6px 14px; }

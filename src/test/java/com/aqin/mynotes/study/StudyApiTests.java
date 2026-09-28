@@ -48,6 +48,34 @@ class StudyApiTests {
     }
 
     @Test
+    void notesCanBeSearchedRenamedAndDeleted() throws Exception {
+        mvc.perform(put("/api/study/notes/crud-a").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"# 📘 TLS 握手\\n\\n先交换 ClientHello，再协商密钥\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/study/notes").param("q", "clienthello"))
+                .andExpect(jsonPath("$[?(@.id == 'crud-a')].title").value("📘 TLS 握手"))
+                .andExpect(jsonPath("$[?(@.id == 'crud-a')].snippet").value(org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("ClientHello"))));
+        mvc.perform(get("/api/study/notes").param("q", "no-such-text-anywhere"))
+                .andExpect(jsonPath("$.length()").value(0));
+
+        mvc.perform(put("/api/study/notes/crud-b").contentType(MediaType.APPLICATION_JSON).content("{\"content\":\"b\"}"));
+        mvc.perform(post("/api/study/notes/crud-a/rename").contentType(MediaType.APPLICATION_JSON).content("{\"newId\":\"crud-b\"}"))
+                .andExpect(status().isConflict());
+        mvc.perform(post("/api/study/notes/crud-a/rename").contentType(MediaType.APPLICATION_JSON).content("{\"newId\":\"../evil\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/study/notes/crud-a/rename").contentType(MediaType.APPLICATION_JSON).content("{\"newId\":\"crud-c\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("crud-c"));
+        mvc.perform(get("/api/study/notes/crud-a")).andExpect(status().isNotFound());
+        mvc.perform(post("/api/study/notes/crud-a/rename").contentType(MediaType.APPLICATION_JSON).content("{\"newId\":\"crud-d\"}"))
+                .andExpect(status().isNotFound());
+
+        mvc.perform(delete("/api/study/notes/crud-b")).andExpect(status().isOk());
+        mvc.perform(delete("/api/study/notes/crud-c")).andExpect(status().isOk());
+        assertThat(store.notes().stream().map(StudyStore.NoteSummary::id)).doesNotContain("crud-a", "crud-b", "crud-c");
+    }
+
+    @Test
     void noteIdCannotEscapeNotesDirectory() throws Exception {
         for (String id : new String[]{"..", "..%2F..%2Fpom", "Upper", ".hidden"}) {
             mvc.perform(put("/api/study/notes/" + id).contentType(MediaType.APPLICATION_JSON).content("{\"content\":\"x\"}"))

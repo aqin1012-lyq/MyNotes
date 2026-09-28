@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -32,6 +33,9 @@ public class StudyController {
     }
 
     public record AttemptRequest(String slug, String result) {
+    }
+
+    public record RenameRequest(String newId) {
     }
 
     private final StudyStore store;
@@ -81,8 +85,8 @@ public class StudyController {
     }
 
     @GetMapping("/notes")
-    public List<StudyStore.NoteSummary> notes() {
-        return store.notes();
+    public List<StudyStore.NoteSummary> notes(@RequestParam(required = false) String q) {
+        return store.notes(q);
     }
 
     @GetMapping("/notes/{id}")
@@ -93,6 +97,11 @@ public class StudyController {
     @PutMapping("/notes/{id}")
     public StudyStore.NoteFile saveNote(@PathVariable String id, @RequestBody NoteRequest request) {
         return store.saveNote(id, request.content());
+    }
+
+    @PostMapping("/notes/{id}/rename")
+    public StudyStore.NoteFile renameNote(@PathVariable String id, @RequestBody RenameRequest request) {
+        return store.renameNote(id, request.newId());
     }
 
     @DeleteMapping("/notes/{id}")

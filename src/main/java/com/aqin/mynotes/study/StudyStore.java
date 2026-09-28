@@ -15,7 +15,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -158,27 +160,72 @@ public class StudyStore {
 
     // ---- notes ----
 
-    public record NoteSummary(String id, Instant updatedAt, int length, String excerpt) {
+    /**
+     * @param title   the note's first "# " heading, or null
+     * @param snippet text around the first search hit, or null when not searching
+     */
+    public record NoteSummary(String id, String title, Instant updatedAt, int length, String excerpt, String snippet) {
     }
 
     public record NoteFile(String id, Instant updatedAt, String content) {
     }
 
     public List<NoteSummary> notes() {
+        return notes(null);
+    }
+
+    /** All notes, newest first; with a query, only notes whose id or content contains it (case-insensitive). */
+    public List<NoteSummary> notes(String query) {
+        String q = query == null || query.isBlank() ? null : query.strip().toLowerCase(Locale.ROOT);
         try (Stream<Path> files = Files.list(notesDir)) {
             return files.filter(p -> p.getFileName().toString().endsWith(".md"))
-                    .map(p -> {
-                        String id = p.getFileName().toString().replaceFirst("\\.md$", "");
-                        String content = read(p);
-                        String excerpt = content.strip().lines().findFirst().orElse("");
-                        return new NoteSummary(id, modified(p), content.length(),
-                                excerpt.length() > 80 ? excerpt.substring(0, 80) + "…" : excerpt);
-                    })
+                    .map(p -> summarize(p, q))
+                    .filter(Objects::nonNull)
                     .sorted(Comparator.comparing(NoteSummary::updatedAt).reversed())
                     .toList();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private NoteSummary summarize(Path file, String query) {
+        String id = file.getFileName().toString().replaceFirst("\\.md$", "");
+        String content = read(file);
+        String snippet = null;
+        if (query != null) {
+            int hit = content.toLowerCase(Locale.ROOT).indexOf(query);
+            if (hit < 0 && !id.contains(query)) {
+                return null;
+            }
+            if (hit >= 0) {
+                int from = Math.max(0, hit - 30), to = Math.min(content.length(), hit + query.length() + 50);
+                snippet = (from > 0 ? "…" : "") + content.substring(from, to).replaceAll("\\s+", " ") + (to < content.length() ? "…" : "");
+            }
+        }
+        String title = content.lines().filter(l -> l.startsWith("# ")).map(l -> l.substring(2).strip()).findFirst().orElse(null);
+        String excerpt = content.lines().map(String::strip)
+                .filter(l -> !l.isEmpty() && !l.startsWith("#") && !l.startsWith("|") && !l.startsWith(":::") && !l.startsWith("```"))
+                .findFirst().orElse("");
+        return new NoteSummary(id, title, modified(file), content.length(),
+                excerpt.length() > 80 ? excerpt.substring(0, 80) + "…" : excerpt, snippet);
+    }
+
+    /** Renames a note file; 409 if the new id is taken, 404 if the note doesn't exist. */
+    public NoteFile renameNote(String id, String newId) {
+        Path from = noteFile(id);
+        Path to = noteFile(newId);
+        if (!Files.exists(from)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        if (Files.exists(to)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "a note with that id already exists");
+        }
+        try {
+            Files.move(from, to);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return new NoteFile(newId, modified(to), read(to));
     }
 
     public Optional<NoteFile> note(String id) {
