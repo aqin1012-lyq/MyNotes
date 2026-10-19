@@ -1,0 +1,13 @@
+/* inline tokens; apply-shared also gives these app.wxss */
+.strong { font-weight: 600; }
+.em { font-style: italic; }
+.del { text-decoration: line-through; }
+.mark { background: var(--mark); border-radius: 3px; padding: 0 3px; }
+.code { font-family: Menlo, monospace; font-size: .88em; background: var(--track); padding: 1px 5px; border-radius: 4px; }
+.a { color: var(--accent); }
+.pill { margin: 2px 4px 2px 0; font-size: 12.5px; }
+.pill-a { text-decoration: underline; }
+.emo { display: inline-block; width: 1.25em; height: 1.25em; vertical-align: -0.24em; margin: 0 1px; }
+.md-progress { display: inline-flex; align-items: center; gap: 8px; width: 220px; max-width: 100%; vertical-align: middle; }
+.md-progress .bar { flex: 1; }
+.br { display: block; height: 0; }

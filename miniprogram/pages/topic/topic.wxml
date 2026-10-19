@@ -1,0 +1,46 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{missing}}" class="wrap"><view class="h1">找不到主题</view><view class="a" data-h="#/roadmap" bindtap="go">返回路线图</view></view>
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="crumbs"><text class="a" data-h="#/roadmap/{{stage.id}}" bindtap="go">{{stage.title}}</text> · 计划 {{t.month}}<block wx:if="{{t.lab}}"> · 对应实验笔记 <text class="code">docs/labs/{{t.lab}}</text></block></view>
+  <view class="title-row"><view class="h1">{{t.title}}</view><text class="stat">{{st.done}}/{{st.total}} · {{st.pct}}%</text></view>
+  <bar pct="{{st.pct}}" />
+  <view class="summary">{{t.summary}}</view>
+
+  <view class="card mt2">
+    <view class="lesson-head" bindtap="toggleLesson">
+      <view class="with-ico"><ico name="book" />讲义</view>
+      <text class="meta muted small">{{lesson.meta}}</text>
+      <text class="toggle">{{lessonOpen ? '收起' : '展开'}}</text>
+    </view>
+    <block wx:if="{{lessonOpen}}">
+      <view wx:if="{{lesson.toc.length}}" class="toc"><text wx:for="{{lesson.toc}}" wx:key="id" class="link" data-sec="{{item.id}}" bindtap="tapToc">{{item.text}}</text></view>
+      <view wx:if="{{!lesson}}" class="muted mt">加载中…</view>
+      <view wx:elif="{{lesson.missing}}" class="muted mt">这篇讲义还在编写中。先看下面的知识点、实践和权威资料吧。</view>
+      <block wx:else>
+        <view class="xs muted mt">本讲义用于学习安全防御。文中的攻击手法只可在自己搭建的环境中练习，未经授权测试他人系统属于违法行为。</view>
+        <md id="lesson" blocks="{{lesson.blocks}}" />
+      </block>
+      <view class="lesson-done"><checklist items="{{lessonItems}}" bind:change="onCheck" /></view>
+    </block>
+  </view>
+
+  <view class="card"><view class="h3">知识点</view><checklist items="{{kItems}}" bind:change="onCheck" /></view>
+  <view class="card">
+    <view class="h3 with-ico"><ico name="bubble" />攻击者视角：思考题</view>
+    <view class="questions"><view wx:for="{{t.questions}}" wx:key="index" class="q">{{item}}</view></view>
+    <view class="h3 with-ico" style="margin-top:14px"><ico name="flask" />动手实践</view>
+    <checklist items="{{pItems}}" bind:change="onCheck" />
+  </view>
+
+  <view class="card">
+    <view class="h3 with-ico"><ico name="book" />权威资料 <text class="muted small" style="font-weight:400">（读完 / 做完后勾选）</text></view>
+    <checklist items="{{rItems}}" bind:change="onCheck" />
+  </view>
+
+  <note-editor wx:if="{{template}}" note-id="{{t.id}}" template="{{template}}" placeholder="写下你的理解…" />
+
+  <view class="pager">
+    <view><text wx:if="{{prev}}" class="a" data-h="#/topic/{{prev.id}}" bindtap="turn">← {{prev.title}}</text></view>
+    <view class="next"><text wx:if="{{next}}" class="a" data-h="#/topic/{{next.id}}" bindtap="turn">{{next.title}} →</text></view>
+  </view>
+</view>

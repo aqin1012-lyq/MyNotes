@@ -1,0 +1,16 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="card" style="margin-top:0">
+    <view class="row"><text class="pill pill-{{kind.pill}}">{{kind.label}}</text><view class="h1" style="font-size:19px;margin:0"><inl toks="{{title}}" /></view></view>
+    <view class="muted xs" style="margin-top:4px"><text class="code">{{editor.id}}</text> · {{status}}</view>
+    <view class="row" style="margin-top:12px">
+      <view class="btn {{mode === 'preview' ? 'on' : ''}}" bindtap="view"><ico name="eye" />查看</view>
+      <view class="btn {{mode === 'edit' ? 'on' : ''}}" bindtap="edit"><ico name="pencil" />编辑</view>
+      <view wx:if="{{renamable}}" class="btn" bindtap="rename"><ico name="pencil" />重命名</view>
+      <view class="btn danger" bindtap="del"><ico name="trash" />删除</view>
+      <text wx:if="{{home}}" class="link" bindtap="home">打开所在页面 ↗</text>
+    </view>
+  </view>
+  <note-editor id="editor" note-id="{{editor.id}}" template="{{editor.template}}" save-now="{{editor.saveNow}}" mode="{{mode}}"
+    bare leave-on-delete bind:status="onStatus" bind:deleted="onDeleted" />
+</view>

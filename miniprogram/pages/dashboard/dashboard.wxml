@@ -1,0 +1,46 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="muted">{{mission}}</view>
+
+  <view class="tiles">
+    <view class="card tile"><view class="label">总进度</view><view class="value">{{all.pct}}%</view><view class="sub">{{all.done}} / {{all.total}} 项</view></view>
+    <view class="card tile"><view class="label">知识点</view><view class="value">{{knowledge.done}}</view><view class="sub">共 {{knowledge.total}} 个</view></view>
+    <view class="card tile"><view class="label">项目里程碑</view><view class="value">{{projects.done}}</view><view class="sub">共 {{projects.total}} 个</view></view>
+    <view class="card tile"><view class="label">累计学习</view><view class="value">{{hours}}<text class="unit"> 小时</text></view><view class="sub">近 7 天 {{weekMin}} 分钟</view></view>
+    <view class="card tile" data-h="#/algo" bindtap="go"><view class="label with-ico"><ico name="code" />刷题</view><view class="value">{{algo.solved}}<text class="unit"> / {{algo.total}}</text></view><view class="sub a">{{algo.due ? '今日待复习 ' + algo.due + ' 题 →' : '去刷题 →'}}</view></view>
+    <view class="card tile" data-h="#/journal" bindtap="go"><view class="label with-ico"><ico name="flame" />连续打卡</view><view class="value">{{streak}}<text class="unit"> 天</text></view><view class="sub a">去打卡 →</view></view>
+  </view>
+
+  <view class="card">
+    <view class="h3">当前阶段：{{cur.title}} <text class="badge">{{cur.from}} ~ {{cur.to}}</text></view>
+    <view class="small text2">{{cur.goal}}</view>
+    <view wx:if="{{next}}" class="mt">下一个未完成主题：<text class="a strong" data-h="#/topic/{{next.id}}" bindtap="go">{{next.title}}</text>
+      <text class="muted small">（{{next.stage}} · 计划 {{next.month}} · {{next.pct}}%）</text></view>
+    <view wx:else class="mt with-ico"><ico name="happy" />全部主题已完成</view>
+    <view wx:if="{{cp}}" class="small muted mt">下一个节点：<text class="a" data-h="#/principles" bindtap="go">{{cp.title}}</text>（{{cp.date}}，还有 {{cp.days}} 天）</view>
+  </view>
+
+  <view class="card">
+    <view class="h3">过去 26 周学习热力图</view>
+    <heatmap cols="{{heat}}" />
+  </view>
+
+  <view class="h2">各阶段进度</view>
+  <view class="card">
+    <view wx:for="{{stages}}" wx:key="id" class="stage-row" data-h="#/roadmap/{{item.id}}" bindtap="go">
+      <view class="top"><text class="a">{{item.title}}</text><text wx:if="{{item.cur}}" class="badge">当前</text><text class="pct">{{item.pct}}% · {{item.done}}/{{item.total}}</text></view>
+      <bar pct="{{item.pct}}" />
+    </view>
+  </view>
+
+  <view class="h2">最近的笔记</view>
+  <view class="card">
+    <view wx:for="{{notes}}" wx:key="id" class="note-item" data-id="{{item.id}}" bindtap="openNote">
+      <view class="row"><text class="pill pill-{{item.kind.pill}}">{{item.kind.label}}</text><view class="title"><inl toks="{{item.title}}" /></view></view>
+      <view class="muted xs" style="margin-top:2px">{{item.time}} · {{item.length}} 字</view>
+      <view class="muted small note-snippet"><inl toks="{{item.excerpt}}" /></view>
+    </view>
+    <view wx:if="{{!notes.length}}" class="muted">还没有笔记。打开任意一个主题开始写吧。</view>
+    <view wx:if="{{moreNotes}}" class="small a" style="margin-top:10px" data-h="#/notes" bindtap="go">查看全部笔记 →</view>
+  </view>
+</view>

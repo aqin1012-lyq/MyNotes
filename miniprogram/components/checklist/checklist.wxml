@@ -1,0 +1,7 @@
+<view class="checklist">
+  <view wx:for="{{items}}" wx:key="id" class="ck {{item.done ? 'done' : ''}}">
+    <view class="ck-box" data-i="{{index}}" bindtap="toggle">{{item.done ? '✓' : ''}}</view>
+    <view class="ck-label" data-i="{{index}}" bindtap="tapLabel"><text wx:if="{{item.type}}" class="type">{{item.type}}</text><text class="{{item.url ? 'a' : ''}}">{{item.label}}</text></view>
+    <text wx:if="{{item.done}}" class="ck-date">{{item.done}}</text>
+  </view>
+</view>

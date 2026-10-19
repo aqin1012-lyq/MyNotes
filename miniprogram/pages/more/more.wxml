@@ -1,0 +1,17 @@
+<view class="wrap">
+  <view class="card" style="margin-top:0;padding-top:4px;padding-bottom:4px">
+    <view wx:for="{{links}}" wx:key="h" class="menu" hover-class="btn-hover" data-h="{{item.h}}" bindtap="go">
+      <ico name="{{item.icon}}" cls="lg" />
+      <view class="menu-body"><view class="strong">{{item.title}}</view><view class="xs muted">{{item.sub}}</view></view>
+      <text class="muted">›</text>
+    </view>
+  </view>
+
+  <view class="h2">我的数据</view>
+  <view class="card">
+    <view class="small text2">学习进度、刷题记录、学习日志和笔记都只保存在这台手机的微信里，不会上传。删除小程序、清理微信存储或换手机后会丢失，记得定期导出笔记。</view>
+    <view class="xs muted mt">已用 {{usedKb}} KB / {{limitKb}} KB</view>
+    <view class="btn primary block mt" hover-class="btn-hover" bindtap="exportNotes">导出全部笔记</view>
+  </view>
+  <view class="muted xs" style="text-align:center;margin-top:24px">MyNotes · Java → 安全 → AI Security</view>
+</view>

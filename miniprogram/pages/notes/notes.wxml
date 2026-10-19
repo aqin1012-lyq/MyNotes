@@ -1,0 +1,37 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="muted small">所有笔记都在这里 新建 / 查看 / 编辑 / 重命名 / 删除 / 搜索；笔记只保存在这台手机上，可以在「更多 → 我的数据」导出。</view>
+
+  <view class="card">
+    <view class="strong">＋ 新建笔记 <text class="muted small" style="font-weight:400">选一个模板，填上 id</text></view>
+    <view class="tpl-chips">
+      <view wx:for="{{tpls}}" wx:key="k" class="btn {{tpl === item.k ? 'on' : ''}}" data-k="{{item.k}}" bindtap="pickTpl"><inl toks="{{item.label}}" /></view>
+    </view>
+    <input class="field" type="text" value="{{newId}}" placeholder="笔记 id，如 spring-security-filter" placeholder-class="placeholder" bindinput="setId" confirm-type="done" bindconfirm="create" />
+    <view class="btn primary block mt" hover-class="btn-hover" bindtap="create">新建并编辑</view>
+  </view>
+
+  <view class="filters">
+    <input class="field grow" type="text" confirm-type="search" placeholder="全文搜索：标题、id、正文" placeholder-class="placeholder" value="{{q}}" bindinput="search" />
+    <picker range="{{kindNames}}" value="{{kindIdx}}" bindchange="pickKind"><view class="picker">{{kindNames[kindIdx]}}</view></picker>
+    <picker range="{{sortNames}}" value="{{sortIdx}}" bindchange="pickSort"><view class="picker">{{sortNames[sortIdx]}}</view></picker>
+    <text class="muted small">{{count}}</text>
+  </view>
+
+  <view class="card" style="margin-top:0">
+    <view wx:for="{{notes}}" wx:key="id" class="note-item">
+      <view data-id="{{item.id}}" bindtap="view">
+        <view class="row"><text class="pill pill-{{item.kind.pill}}">{{item.kind.label}}</text><view class="title"><inl toks="{{item.title}}" /></view></view>
+        <view class="muted small note-snippet"><inl toks="{{item.body}}" /></view>
+        <view class="note-meta"><view class="code" style="display:inline"><inl toks="{{item.idToks}}" /></view> · {{item.time}} · {{item.length}} 字</view>
+      </view>
+      <view class="note-actions">
+        <text class="link" data-id="{{item.id}}" bindtap="view">查看</text>
+        <text class="link" data-id="{{item.id}}" bindtap="edit">编辑</text>
+        <text wx:if="{{item.renamable}}" class="link" data-id="{{item.id}}" bindtap="rename">重命名</text>
+        <text class="link danger" data-id="{{item.id}}" bindtap="del">删除</text>
+      </view>
+    </view>
+    <view wx:if="{{!notes.length}}" class="muted" style="padding:12px 4px">{{q ? '没有找到包含这个关键词的笔记。' : '还没有笔记，用上面的模板新建一篇吧。'}}</view>
+  </view>
+</view>

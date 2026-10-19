@@ -1,0 +1,7 @@
+<view class="wrap">
+  <view class="h1">加载失败</view>
+  <view class="muted small">{{error}}</view>
+  <view class="row mt2">
+    <view class="btn primary" hover-class="btn-hover" bindtap="retry">重新加载</view>
+  </view>
+</view>

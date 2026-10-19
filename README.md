@@ -4,6 +4,7 @@
 包含两部分：
 
 1. **学习站**（`http://localhost:8080/`）：路线图、每个主题的知识点 / 思考题 / 实践 / 权威资料、进度统计、Markdown 笔记、学习打卡。
+   另有内容相同的微信小程序版，见 [miniprogram/README.md](miniprogram/README.md)。
 2. **安全实验室**（项目①）：`/vuln/**` 与 `/secure/**` 成对的漏洞与修复，见 [docs/labs/README.md](docs/labs/README.md)。
 
 ## 启动

@@ -1,0 +1,8 @@
+:host { display: block; }
+.ck { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: 14.5px; line-height: 1.55; }
+.ck:last-child { border-bottom: 0; }
+.ck-box { flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px; border: 1.5px solid var(--accent); border-radius: 5px; font-size: 13px; text-align: center; color: var(--accent-ink); box-sizing: border-box; line-height: 15px; }
+.ck.done .ck-box { background: var(--accent); }
+.ck-label { flex: 1; min-width: 0; }
+.ck.done .ck-label { color: var(--muted); text-decoration: line-through; }
+.ck-date { font-size: 11px; color: var(--muted); white-space: nowrap; padding-top: 3px; }

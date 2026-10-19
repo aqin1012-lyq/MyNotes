@@ -1,0 +1,35 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="muted small">每天花了多少时间、学了什么。保存在 <text class="code">study/log.tsv</text>。</view>
+  <view class="card">
+    <view class="row">
+      <picker mode="date" value="{{date}}" bindchange="pickDate"><view class="picker">{{date}}</view></picker>
+      <input class="field" type="number" value="{{minutes}}" bindinput="setMinutes" style="width:70px" /><text>分钟</text>
+    </view>
+    <picker range="{{topicNames}}" value="{{topicIdx}}" bindchange="pickTopic"><view class="picker mt" style="overflow:hidden;text-overflow:ellipsis">{{topicNames[topicIdx]}}</view></picker>
+    <input class="field mt" type="text" value="{{text}}" placeholder="今天学了什么 / 做了哪个实验" placeholder-class="placeholder" bindinput="setText" confirm-type="done" bindconfirm="submit" />
+    <view class="btn primary block mt" hover-class="btn-hover" bindtap="submit">打卡</view>
+  </view>
+
+  <view class="card"><view class="h3">学习热力图</view><heatmap cols="{{heat}}" /></view>
+  <view class="card">
+    <view class="h3">按主题累计</view>
+    <view class="kv muted small"><text>主题</text><text>时长</text></view>
+    <view wx:for="{{byTopic}}" wx:key="id" class="kv">
+      <text wx:if="{{item.title}}" class="a" data-h="#/topic/{{item.id}}" bindtap="go">{{item.title}}</text><text wx:else class="muted">未关联</text>
+      <text class="num">{{item.h}} h</text>
+    </view>
+    <view wx:if="{{!byTopic.length}}" class="muted small">暂无记录</view>
+  </view>
+
+  <view class="h2">记录</view>
+  <view class="card">
+    <view wx:for="{{log}}" wx:key="index" class="list-item">
+      <view class="row nowrap"><text class="strong">{{item.date}}</text><text class="muted small">{{item.minutes}} 分钟</text>
+        <text wx:if="{{item.topic}}" class="a small" data-h="#/topic/{{item.topicId}}" bindtap="go">{{item.topic}}</text>
+        <view class="spacer"></view><text class="link" data-i="{{item.index}}" bindtap="del">✕</text></view>
+      <view wx:if="{{item.text}}" class="small text2">{{item.text}}</view>
+    </view>
+    <view wx:if="{{!log.length}}" class="muted">还没有记录，今天就开始吧。</view>
+  </view>
+</view>

@@ -1,0 +1,25 @@
+<view class="card note-card">
+  <view wx:if="{{!bare}}" class="editor-bar">
+    <view class="h3" style="margin:0">笔记</view>
+    <text class="code xs">{{noteId}}</text>
+    <view class="spacer"></view>
+    <view class="btn {{current === 'edit' ? 'on' : ''}}" data-mode="edit" bindtap="tab">编辑</view>
+    <view class="btn {{current === 'preview' ? 'on' : ''}}" data-mode="preview" bindtap="tab">预览</view>
+    <view class="link" bindtap="remove"><ico name="trash" /></view>
+  </view>
+  <view wx:if="{{!bare}}" class="xs muted save-state">{{status}}</view>
+  <block wx:if="{{loaded}}">
+    <textarea wx:if="{{current === 'edit'}}" class="note-text" value="{{text}}" placeholder="{{placeholder}}" placeholder-class="placeholder"
+      maxlength="-1" auto-height show-confirm-bar="{{false}}" disable-default-padding cursor-spacing="80"
+      bindinput="input" bindblur="save" />
+    <view wx:else class="preview">
+      <md wx:if="{{blocks.length}}" blocks="{{blocks}}" />
+      <view wx:else class="muted small" style="padding:12px 0">（空笔记）点「编辑」开始写。</view>
+    </view>
+  </block>
+  <view wx:else class="muted small">加载中…</view>
+  <view wx:if="{{!bare}}" class="muted xs hint">支持 Markdown，自动保存。扩展写法：<text class="code">==高亮==</text>
+    · 提示框 <text class="code">:::tip 标题</text> / <text class="code">:::warn</text> / <text class="code">:::note</text> … <text class="code">:::</text>
+    · 折叠 <text class="code">:::details 问题</text> … <text class="code">:::</text>
+    · 链接主题 <text class="code">[[net-tcp]]</text> / 题目 <text class="code">[[algo:two-sum]]</text></view>
+</view>

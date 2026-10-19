@@ -1,0 +1,8 @@
+<block wx:for="{{toks}}" wx:key="index">
+  <text wx:if="{{item.t === 'x'}}" class="{{item.c}}">{{item.v}}</text>
+  <text wx:elif="{{item.t === 'a'}}" class="a {{item.c}}" data-h="{{item.h}}" catchtap="go">{{item.v}}</text>
+  <image wx:elif="{{item.t === 'i'}}" class="emo" src="{{item.s}}" mode="aspectFit" />
+  <view wx:elif="{{item.t === 'pill'}}" class="pill pill-{{item.k}}"><block wx:for="{{item.ch}}" wx:for-item="c" wx:key="index"><text wx:if="{{c.t === 'x'}}" class="{{c.c}}">{{c.v}}</text><text wx:elif="{{c.t === 'a'}}" class="pill-a {{c.c}}" data-h="{{c.h}}" catchtap="go">{{c.v}}</text><image wx:elif="{{c.t === 'i'}}" class="emo" src="{{c.s}}" mode="aspectFit" /><text wx:elif="{{c.t === 'p'}}">{{c.v}}%</text></block></view>
+  <view wx:elif="{{item.t === 'p'}}" class="md-progress"><view class="bar {{item.v === 100 ? 'full' : ''}}"><view style="width:{{item.v}}%"></view></view><text class="small muted">{{item.v}}%</text></view>
+  <view wx:elif="{{item.t === 'br'}}" class="br"></view>
+</block>

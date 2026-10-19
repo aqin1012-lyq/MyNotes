@@ -1,0 +1,7 @@
+:host { display: block; }
+.editor-bar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.editor-bar .link .ico { width: 20px; height: 20px; }
+.save-state { margin: 4px 0 8px; min-height: 1.4em; }
+.note-text { width: 100%; min-height: 360px; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font-family: Menlo, monospace; font-size: 13.5px; line-height: 1.55; }
+.preview { border: 1px solid var(--border); border-radius: 8px; padding: 2px 14px; min-height: 120px; }
+.hint { margin-top: 10px; line-height: 1.8; }

@@ -1,0 +1,39 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{missing}}" class="wrap"><view class="h1">找不到这道题</view><view class="a" data-h="#/algo" bindtap="go">返回题单</view></view>
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="crumbs"><text class="a" data-h="#/algo" bindtap="go">刷题</text> · {{crumbs}}</view>
+  <view class="row"><view class="h1">{{p.label}}</view><text class="diff diff-{{p.diff}}">{{p.diffLabel}}</text><view class="spacer"></view><text class="st st-{{st.state}}">{{st.text}}</text></view>
+
+  <view class="card">
+    <view wx:if="{{p.url}}" class="btn outline" bindtap="copy">去力扣做题 ↗（复制链接）</view>
+    <view wx:else class="small muted">手写题：先在 IDE 里自己写一遍并跑通，再展开对照题解</view>
+    <view class="muted small mt">做完记录一下：</view>
+    <view class="row" style="margin-top:6px">
+      <view class="btn primary" hover-class="btn-hover" data-r="ac" bindtap="attempt">✅ 做出来了</view>
+      <view class="btn" hover-class="btn-hover" data-r="fail" bindtap="attempt">😵 没做出来 / 看了题解</view>
+    </view>
+  </view>
+  <view wx:if="{{tries.length}}" class="small muted" style="margin:8px 2px">做题记录：<view wx:for="{{tries}}" wx:key="index" class="attempt">{{item.date}} {{item.ok ? '✅' : '😵'}}<text class="link" data-i="{{item.index}}" bindtap="delAttempt">✕</text></view><text wx:if="{{st.due}}"> · 下次：{{st.due}}</text></view>
+
+  <view class="card">
+    <view wx:if="{{!solution}}" class="muted">加载中…</view>
+    <view wx:elif="{{solution.missing}}" class="muted">这道题的题解还在编写中，先去力扣做题吧。</view>
+    <block wx:else>
+      <md blocks="{{solution.head}}" />
+      <view wx:if="{{solution.body}}" class="card spoiler {{spoiler ? 'open' : ''}}">
+        <view class="lesson-head" bindtap="toggleSpoiler">
+          <view class="with-ico"><ico name="bubble" />思路与题解</view>
+          <text class="meta muted small">{{spoiler ? '收起' : '先自己想 15～20 分钟，卡住了再展开'}}</text>
+        </view>
+        <md wx:if="{{spoiler}}" blocks="{{solution.body}}" />
+      </view>
+    </block>
+  </view>
+
+  <note-editor wx:if="{{template}}" note-id="algo-{{p.slug}}" template="{{template}}" placeholder="记录你的解题过程…" />
+
+  <view class="pager">
+    <view><text wx:if="{{prev}}" class="a" data-h="#/algo/{{prev.slug}}" bindtap="turn">← {{prev.label}}</text></view>
+    <view class="next"><text wx:if="{{next}}" class="a" data-h="#/algo/{{next.slug}}" bindtap="turn">{{next.label}} →</text></view>
+  </view>
+</view>

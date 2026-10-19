@@ -1,0 +1,10 @@
+:host { display: block; }
+.heatmap-scroll { width: 100%; white-space: nowrap; }
+.heatmap { display: inline-flex; gap: 3px; padding-bottom: 4px; }
+.hcol { display: flex; flex-direction: column; gap: 3px; }
+.hc { width: 11px; height: 11px; border-radius: 3px; background: var(--heat-0); }
+.hc.l1 { background: var(--heat-1); }
+.hc.l2 { background: var(--heat-2); }
+.hc.l3 { background: var(--heat-3); }
+.hc.l4 { background: var(--heat-4); }
+.hc.future { visibility: hidden; }

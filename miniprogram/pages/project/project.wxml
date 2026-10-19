@@ -1,0 +1,10 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{missing}}" class="wrap"><view class="h1">找不到项目</view></view>
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="crumbs"><text class="a" data-h="#/projects" bindtap="go">项目</text> · {{p.period}}</view>
+  <view class="title-row"><view class="h1">{{p.title}}</view><text class="stat">{{st.done}}/{{st.total}} · {{st.pct}}%</text></view>
+  <bar pct="{{st.pct}}" />
+  <view class="summary">技术栈：{{p.stack}}<view wx:if="{{p.link}}">位置：{{p.link}}</view></view>
+  <view class="card mt2"><view class="h3">里程碑</view><checklist items="{{items}}" bind:change="onCheck" /></view>
+  <note-editor wx:if="{{template}}" note-id="project-{{p.id}}" template="{{template}}" placeholder="项目设计与记录…" />
+</view>

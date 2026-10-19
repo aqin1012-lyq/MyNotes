@@ -1,0 +1,39 @@
+<view class="md {{cls}}">
+  <block wx:for="{{blocks}}" wx:for-item="b" wx:key="index">
+    <view wx:if="{{b.b === 'p'}}" class="md-p"><inl toks="{{b.inl}}" /></view>
+    <view wx:elif="{{b.b === 'h'}}" id="{{b.id}}" class="md-h md-h{{b.l}}"><inl toks="{{b.inl}}" /></view>
+    <scroll-view wx:elif="{{b.b === 'pre'}}" scroll-x class="md-pre" enhanced show-scrollbar="{{false}}"><text user-select space="nbsp">{{b.v}}</text></scroll-view>
+    <view wx:elif="{{b.b === 'hr'}}" class="md-hr"></view>
+    <view wx:elif="{{b.b === 'quote'}}" class="md-quote"><md blocks="{{b.ch}}" /></view>
+    <view wx:elif="{{b.b === 'callout'}}" class="md-callout {{b.k}}">
+      <view wx:if="{{b.title}}" class="md-callout-title"><inl toks="{{b.title}}" /></view>
+      <md blocks="{{b.ch}}" />
+    </view>
+    <view wx:elif="{{b.b === 'card'}}" class="md-card">
+      <view wx:if="{{b.title}}" class="md-card-head"><inl toks="{{b.title}}" /></view>
+      <md blocks="{{b.ch}}" />
+    </view>
+    <view wx:elif="{{b.b === 'qa'}}" class="md-qa {{open[index] ? 'open' : ''}}">
+      <view class="md-qa-sum" data-i="{{index}}" bindtap="toggle"><text class="tri">{{open[index] ? '▾' : '▸'}}</text><view class="md-qa-title"><inl toks="{{b.title}}" /></view></view>
+      <view wx:if="{{open[index]}}" class="md-qa-body"><md blocks="{{b.ch}}" /></view>
+    </view>
+    <view wx:elif="{{b.b === 'fold'}}" class="md-fold {{open[index] ? 'open' : ''}}">
+      <view class="md-fold-sum" data-i="{{index}}" bindtap="toggle"><view class="md-fold-title"><inl toks="{{b.title}}" /></view><text class="muted small">{{open[index] ? '收起' : '点击展开'}}</text></view>
+      <view wx:if="{{open[index]}}" class="md-fold-body"><md blocks="{{b.ch}}" /></view>
+    </view>
+    <scroll-view wx:elif="{{b.b === 'table'}}" scroll-x class="md-table-wrap" enhanced show-scrollbar="{{false}}">
+      <view class="md-table">
+        <view class="tr th"><view wx:for="{{b.head}}" wx:for-item="c" wx:key="index" class="td"><inl toks="{{c}}" /></view></view>
+        <view wx:for="{{b.rows}}" wx:for-item="r" wx:key="index" class="tr"><view wx:for="{{r}}" wx:for-item="c" wx:key="index" class="td"><inl toks="{{c}}" /></view></view>
+      </view>
+    </scroll-view>
+    <view wx:elif="{{b.b === 'list'}}" class="md-list {{b.tasks ? 'tasks' : ''}}">
+      <view wx:for="{{b.items}}" wx:for-item="it" wx:key="index" class="li {{it.task === 2 ? 'checked' : ''}}">
+        <view wx:if="{{it.task}}" class="box">{{it.task === 2 ? '✓' : ''}}</view>
+        <view wx:elif="{{b.ordered}}" class="mk num">{{it.n}}.</view>
+        <view wx:else class="mk">•</view>
+        <view class="li-body"><inl toks="{{it.inl}}" /></view>
+      </view>
+    </view>
+  </block>
+</view>

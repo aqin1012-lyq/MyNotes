@@ -1,0 +1,30 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="card" style="margin-top:0">
+    <view class="h3">主线</view>
+    <view>{{mission}}</view>
+    <view class="muted small mt">目标身份：{{identity}}</view>
+    <view class="muted small mt">要解决的不是“AI 更新这么快我该学什么”，而是“我要建立什么样的底层能力，让 AI 每一次进步都能帮我，而不是让我重新学一遍”。</view>
+  </view>
+
+  <view class="h2">关键节点</view>
+  <view wx:for="{{checkpoints}}" wx:key="note" class="card">
+    <view class="h3">{{item.title}}</view>
+    <view class="muted small">{{item.date}} · {{item.days >= 0 ? '还有 ' + item.days + ' 天' : '已到期'}}</view>
+    <view class="small text2 mt">{{item.detail}}</view>
+    <view class="a mt" data-h="#/note/{{item.note}}" bindtap="go">写复盘笔记 →</view>
+  </view>
+
+  <view class="h2">容易犯的错误</view>
+  <view class="card"><view wx:for="{{pitfalls}}" wx:key="index" class="pitfall"><ico name="oops" cls="lg" /><text>{{item}}</text></view></view>
+
+  <view class="card">
+    <view class="h3">可以关注的岗位</view>
+    <view class="row" style="gap:0"><text wx:for="{{careers}}" wx:key="index" class="badge gray">{{item}}</text></view>
+    <view class="muted small">路径：在职学习 → 公司内部找安全相关的活 → 做安全项目 → 把 Java + 安全写进简历 → 尝试安全相关岗位。不要裸辞。</view>
+  </view>
+  <view class="card">
+    <view class="h3">证书（不是主线，按目标岗位再决定）</view>
+    <view wx:for="{{certs}}" wx:key="t" class="kv"><text class="a" data-url="{{item.u}}" bindtap="copy">{{item.t}}</text><text class="muted small" style="text-align:right">{{item.when}}</text></view>
+  </view>
+</view>

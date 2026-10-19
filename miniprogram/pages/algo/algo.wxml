@@ -1,0 +1,38 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="set-tabs">
+    <view wx:for="{{sets}}" wx:key="id" class="btn {{item.on ? 'on' : ''}}" data-id="{{item.id}}" bindtap="pickSet">{{item.title}} <text class="muted small">{{item.solved}}/{{item.total}}</text></view>
+  </view>
+  <view class="muted small">{{desc}} 题意为自己转述，有题号的点“力扣 ↗”复制链接，去官网提交判题。</view>
+
+  <view class="tiles">
+    <view class="card tile"><view class="label">做出来</view><view class="value">{{tiles.solved}}<text class="unit"> / {{tiles.total}}</text></view><view class="sub">简单 {{tiles.E}} · 中等 {{tiles.M}} · 困难 {{tiles.H}}</view></view>
+    <view class="card tile"><view class="label">今日待复习</view><view class="value">{{tiles.due}}</view><view class="sub">做错的次日重做，做对的按 {{tiles.review}} 天复习</view></view>
+    <view class="card tile"><view class="label">已掌握</view><view class="value">{{tiles.mastered}}</view><view class="sub">连续 {{tiles.streak}} 次做对</view></view>
+  </view>
+
+  <view wx:if="{{due.length}}" class="card">
+    <view class="h3 with-ico"><ico name="flame" />今日待复习</view>
+    <view class="due-list"><view wx:for="{{due}}" wx:key="slug" class="due-chip" data-h="#/algo/{{item.slug}}" bindtap="go">{{item.label}} <text class="muted small">{{item.st}}</text></view></view>
+  </view>
+
+  <view class="filters">
+    <input class="field grow" type="text" confirm-type="search" placeholder="搜索题号或标题…" placeholder-class="placeholder" value="{{q}}" bindinput="search" />
+    <picker range="{{diffNames}}" value="{{diffIdx}}" bindchange="pickDiff"><view class="picker">{{diffNames[diffIdx]}}</view></picker>
+    <picker range="{{stateNames}}" value="{{stateIdx}}" bindchange="pickState"><view class="picker">{{stateNames[stateIdx]}}</view></picker>
+    <text class="muted small">{{count}} 题</text>
+  </view>
+
+  <view wx:for="{{cats}}" wx:for-item="c" wx:key="id" class="card">
+    <view class="row"><view class="h3" style="margin:0">{{c.title}}</view><view class="spacer"></view><text class="muted small">{{c.done}}/{{c.total}}</text></view>
+    <view style="margin:8px 0 4px"><bar pct="{{c.pct}}" /></view>
+    <view wx:for="{{c.rows}}" wx:key="slug" class="algo-row">
+      <text class="no">{{item.no}}</text>
+      <text class="t" data-h="#/algo/{{item.slug}}" bindtap="go">{{item.title}}</text>
+      <text class="diff diff-{{item.diff}}">{{item.diffLabel}}</text>
+      <text class="st st-{{item.state}}">{{item.status}}</text>
+      <text wx:if="{{item.url}}" class="link" data-url="{{item.url}}" catchtap="copy">力扣 ↗</text>
+      <text wx:else class="muted xs">手写</text>
+    </view>
+  </view>
+</view>

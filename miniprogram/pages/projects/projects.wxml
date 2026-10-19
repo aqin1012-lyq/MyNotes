@@ -1,0 +1,10 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="muted">不要只看课程：每个阶段都用一个项目把知识落地。项目 > 课程 > 证书。</view>
+  <view wx:for="{{projects}}" wx:key="id" class="card topic-chip" hover-class="btn-hover" data-h="#/projects/{{item.id}}" bindtap="go">
+    <view class="h3">{{item.title}}</view>
+    <view class="meta"><text>{{item.period}}</text><text>{{item.done}}/{{item.total}}</text></view>
+    <view class="small muted" style="margin:0 0 10px">{{item.stack}}</view>
+    <bar pct="{{item.pct}}" />
+  </view>
+</view>

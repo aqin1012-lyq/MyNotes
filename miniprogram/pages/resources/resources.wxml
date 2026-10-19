@@ -1,0 +1,21 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="muted small">全部 {{total}} 条资料，已读 {{read}} 条。优先级：规范 / 官方文档 / 权威标准（OWASP、NIST、RFC）> 靶场 > 教程。</view>
+  <view class="filters">
+    <input class="field grow" type="text" confirm-type="search" placeholder="搜索标题或主题…" placeholder-class="placeholder" value="{{q}}" bindinput="search" />
+    <picker range="{{typeNames}}" value="{{typeIdx}}" bindchange="pickType"><view class="picker">{{typeNames[typeIdx]}}</view></picker>
+    <picker range="{{stageNames}}" value="{{stageIdx}}" bindchange="pickStage"><view class="picker">{{stageNames[stageIdx]}}</view></picker>
+    <picker range="{{doneNames}}" value="{{doneIdx}}" bindchange="pickDone"><view class="picker">{{doneNames[doneIdx]}}</view></picker>
+    <text class="muted small">{{rows.length}} 条</text>
+  </view>
+  <view class="card">
+    <view wx:for="{{rows}}" wx:key="id" class="res {{item.done ? 'done' : ''}}">
+      <view class="ck-box" data-i="{{index}}" bindtap="toggle">{{item.done ? '✓' : ''}}</view>
+      <view class="res-body">
+        <view><text class="type">{{item.type}}</text><text class="{{item.u ? 'a' : ''}}" data-i="{{index}}" bindtap="open">{{item.t}}</text></view>
+        <view class="xs muted" style="margin-top:2px"><text class="a" data-h="#/topic/{{item.topicId}}" bindtap="go">{{item.topic}}</text> · {{item.stage}}</view>
+      </view>
+    </view>
+    <view wx:if="{{!rows.length}}" class="muted">没有符合条件的资料。</view>
+  </view>
+</view>

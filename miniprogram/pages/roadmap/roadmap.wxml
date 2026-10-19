@@ -1,0 +1,21 @@
+<offline wx:if="{{error}}" error="{{error}}" bind:retry="onRetry" />
+<view wx:elif="{{ready}}" class="wrap">
+  <view class="muted">{{identity}}</view>
+  <view wx:for="{{stages}}" wx:for-item="s" wx:key="id" id="stage-{{s.id}}" class="card stage {{s.cur ? 'current' : ''}}">
+    <view class="stage-head">
+      <text class="title">S{{s.n}} · {{s.title}}</text>
+      <text class="period">{{s.from}} ~ {{s.to}}</text>
+      <text wx:if="{{s.cur}}" class="badge">当前阶段</text>
+      <view class="spacer"></view><text class="small muted">{{s.done}}/{{s.total}} · {{s.pct}}%</text>
+    </view>
+    <view class="small with-ico text2" style="margin:6px 0 10px;align-items:flex-start"><ico name="star" /><text>{{s.goal}}</text></view>
+    <bar pct="{{s.pct}}" />
+    <view class="topic-list">
+      <view wx:for="{{s.topics}}" wx:for-item="t" wx:key="id" class="topic-chip" hover-class="btn-hover" data-h="#/topic/{{t.id}}" bindtap="go">
+        <view class="row"><text class="strong">{{t.title}}</text><text wx:if="{{t.pct === 100}}" class="badge good"><ico name="happy" />完成</text></view>
+        <view class="meta"><text>计划 {{t.month}}</text><text>{{t.done}}/{{t.total}}</text></view>
+        <bar pct="{{t.pct}}" />
+      </view>
+    </view>
+  </view>
+</view>

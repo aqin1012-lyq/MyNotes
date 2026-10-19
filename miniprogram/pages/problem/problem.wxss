@@ -1,0 +1,3 @@
+.spoiler { background: var(--fold-bg); }
+.spoiler.open { background: var(--surface); }
+.spoiler .lesson-head .meta { text-align: right; padding-left: 10px; }

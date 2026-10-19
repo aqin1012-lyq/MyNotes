@@ -1,0 +1,60 @@
+{
+  "pages": [
+    "pages/dashboard/dashboard",
+    "pages/roadmap/roadmap",
+    "pages/algo/algo",
+    "pages/notes/notes",
+    "pages/more/more",
+    "pages/topic/topic",
+    "pages/problem/problem",
+    "pages/projects/projects",
+    "pages/project/project",
+    "pages/resources/resources",
+    "pages/journal/journal",
+    "pages/principles/principles",
+    "pages/note/note"
+  ],
+  "subPackages": [
+    { "root": "pkg-lessons", "name": "lessons", "pages": ["index"] },
+    { "root": "pkg-algo", "name": "algo", "pages": ["index"] }
+  ],
+  "preloadRule": {
+    "pages/roadmap/roadmap": { "network": "all", "packages": ["lessons"] },
+    "pages/algo/algo": { "network": "all", "packages": ["algo"] }
+  },
+  "window": {
+    "navigationBarTitleText": "MyNotes",
+    "navigationBarBackgroundColor": "@navBg",
+    "navigationBarTextStyle": "@navText",
+    "backgroundColor": "@bg",
+    "backgroundTextStyle": "@bgText"
+  },
+  "tabBar": {
+    "color": "@tabColor",
+    "selectedColor": "@tabSelected",
+    "backgroundColor": "@tabBg",
+    "borderStyle": "@tabBorder",
+    "list": [
+      { "pagePath": "pages/dashboard/dashboard", "text": "仪表盘", "iconPath": "images/tab-dashboard.png", "selectedIconPath": "images/tab-dashboard-on.png" },
+      { "pagePath": "pages/roadmap/roadmap", "text": "路线图", "iconPath": "images/tab-roadmap.png", "selectedIconPath": "images/tab-roadmap-on.png" },
+      { "pagePath": "pages/algo/algo", "text": "刷题", "iconPath": "images/tab-algo.png", "selectedIconPath": "images/tab-algo-on.png" },
+      { "pagePath": "pages/notes/notes", "text": "笔记", "iconPath": "images/tab-notes.png", "selectedIconPath": "images/tab-notes-on.png" },
+      { "pagePath": "pages/more/more", "text": "更多", "iconPath": "images/tab-more.png", "selectedIconPath": "images/tab-more-on.png" }
+    ]
+  },
+  "usingComponents": {
+    "ico": "/components/ico/ico",
+    "inl": "/components/inl/inl",
+    "md": "/components/md/md",
+    "bar": "/components/bar/bar",
+    "checklist": "/components/checklist/checklist",
+    "heatmap": "/components/heatmap/heatmap",
+    "note-editor": "/components/note-editor/note-editor",
+    "offline": "/components/offline/offline"
+  },
+  "darkmode": true,
+  "themeLocation": "theme.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

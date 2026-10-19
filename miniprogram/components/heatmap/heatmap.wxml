@@ -1,0 +1,8 @@
+<scroll-view scroll-x scroll-left="{{left}}" class="heatmap-scroll" enhanced show-scrollbar="{{false}}">
+  <view class="heatmap" aria-label="过去 {{weeks}} 周每日学习时长">
+    <view wx:for="{{cols}}" wx:for-item="col" wx:key="index" class="hcol">
+      <view wx:for="{{col}}" wx:key="k" class="hc l{{item.l}} {{item.future ? 'future' : ''}}" data-k="{{item.future ? '' : item.k}}" data-m="{{item.m}}" bindtap="tap"></view>
+    </view>
+  </view>
+</scroll-view>
+<view class="heat-legend">少 <view class="sq" style="background:var(--heat-0)"></view><view class="sq" style="background:var(--heat-1)"></view><view class="sq" style="background:var(--heat-2)"></view><view class="sq" style="background:var(--heat-3)"></view><view class="sq" style="background:var(--heat-4)"></view> 多<view class="spacer"></view>{{'<30'}} / 30–60 / 60–120 / 120+ 分钟</view>
