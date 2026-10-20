@@ -9,6 +9,10 @@ const checks = (ids, labels, extra = () => ({})) =>
   ids.map((id, i) => ({ id, label: labels[i], done: store.S.progress[id] || '', ...extra(i) }));
 
 page({
+  share() {
+    const t = store.topicById[this.id];
+    return { title: t ? `${t.title} · 讲义` : '学习路线 · 讲义', query: `id=${this.id}` };
+  },
   data: { lessonOpen: true, lesson: null },
   onLoad(o) { this.id = o.id; this.sec = o.sec; },
   render() {

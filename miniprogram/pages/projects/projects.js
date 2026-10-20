@@ -3,6 +3,7 @@ const page = require('../../utils/page');
 const nav = require('../../utils/nav');
 
 page({
+  share() { return { title: '项目：每个阶段用一个项目把知识落地' }; },
   render() {
     this.setData({
       projects: store.S.C.projects.map(p => ({ id: p.id, title: p.title, period: p.period, stack: p.stack, ...store.stats(store.projectItems(p)) })),

@@ -6,6 +6,7 @@ const { toast } = require('../../utils/util');
 const DONE = [['', '全部'], ['0', '未读'], ['1', '已读']];
 
 page({
+  share() { return { title: '安全学习资料库：OWASP / RFC / 官方文档' }; },
   data: { q: '', typeIdx: 0, stageIdx: 0, doneIdx: 0, doneNames: DONE.map(d => d[1]) },
   render() {
     const { S, topics } = store;

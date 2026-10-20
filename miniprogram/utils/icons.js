@@ -172,7 +172,7 @@ function base64(s) { // the SVG sources are pure ASCII
 }
 
 let theme = 'light';
-try { theme = wx.getSystemInfoSync().theme === 'dark' ? 'dark' : 'light'; } catch (e) { /* not in a mini program */ }
+try { theme = wx.getAppBaseInfo().theme === 'dark' ? 'dark' : 'light'; } catch (e) { /* not in a mini program */ }
 const cache = {};
 
 // the web app overrides --face per group / element; resolve that, then every other CSS variable

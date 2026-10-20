@@ -7,6 +7,7 @@ const DIFFS = [['', '全部难度'], ['E', '简单'], ['M', '中等'], ['H', '�
 const STATES = [['', '全部状态'], ['new', '未做'], ['due', '今日该做'], ['retry', '待重做'], ['learning', '复习中'], ['mastered', '已掌握']];
 
 page({
+  share() { return { title: '刷题清单 · 做错次日重做，做对按间隔复习' }; },
   data: { q: '', diffIdx: 0, stateIdx: 0, diffNames: DIFFS.map(d => d[1]), stateNames: STATES.map(s => s[1]) },
   render() {
     const { S, setById, algoStats } = store;

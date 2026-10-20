@@ -6,6 +6,10 @@ const { markdown } = require('../../utils/markdown');
 const { toast, confirm } = require('../../utils/util');
 
 page({
+  share() {
+    const p = store.problemBySlug[this.slug];
+    return { title: p ? `刷题：${store.plabel(p)}` : '刷题', query: `slug=${this.slug}` };
+  },
   data: { spoiler: false, solution: null },
   onLoad(o) { this.slug = o.slug; },
   render() {

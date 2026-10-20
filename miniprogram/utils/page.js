@@ -1,8 +1,10 @@
-/* Shared page plumbing: wait for the store, show the offline screen if the backend is down. */
+/* Shared page plumbing: wait for the store, show the offline screen if the backend is down, forwarding. */
 const store = require('./store');
+const share = require('./share');
 
-// wraps a Page definition; the page implements render() (sync or async)
+// wraps a Page definition; the page implements render() (sync or async) and optionally share()
 module.exports = def => Page({
+  ...share(def),
   ...def,
   data: { ready: false, error: '', ...(def.data || {}) },
   async refresh(force) {

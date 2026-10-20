@@ -1,8 +1,10 @@
 const api = require('../../utils/api');
 const nav = require('../../utils/nav');
+const share = require('../../utils/share');
 const { today, toast } = require('../../utils/util');
 
 Page({
+  ...share({}),
   data: {
     links: [
       { h: '#/projects', icon: 'flask', title: '项目', sub: '每个阶段用一个项目把知识落地' },

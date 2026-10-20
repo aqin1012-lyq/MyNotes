@@ -4,6 +4,7 @@ const nav = require('../../utils/nav');
 const { daysUntil } = require('../../utils/util');
 
 page({
+  share() { return { title: '原则与复盘 · 我的安全学习主线' }; },
   render() {
     const C = store.S.C;
     this.setData({

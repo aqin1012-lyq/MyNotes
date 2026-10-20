@@ -3,6 +3,7 @@ const page = require('../../utils/page');
 const nav = require('../../utils/nav');
 
 page({
+  share() { return { title: '4 年成长路线：Java 后端 → 网络/系统 → Web 安全 → 云原生安全 → AI Security' }; },
   render() {
     const { S, stageStats, topicStats } = store;
     const cur = store.currentStage();

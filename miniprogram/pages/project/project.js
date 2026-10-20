@@ -4,6 +4,10 @@ const nav = require('../../utils/nav');
 const { toast } = require('../../utils/util');
 
 page({
+  share() {
+    const p = store.S.C.projects.find(x => x.id === this.id);
+    return { title: p ? p.title : '项目', query: `id=${this.id}` };
+  },
   onLoad(o) { this.id = o.id; },
   render() {
     const p = store.S.C.projects.find(x => x.id === this.id);
